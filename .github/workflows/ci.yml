@@ -1,4 +1,4 @@
-﻿name: ci
+name: ci
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
     name: Lint and test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
           go-version: "1.25.x"
@@ -34,14 +34,14 @@ jobs:
       - name: Vet
         run: go vet ./...
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
           version: v2.5.0
           args: --timeout=5m
       - name: Test (race + coverage)
         run: go test -race -coverprofile=coverage.out -covermode=atomic -timeout 120s ./...
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: coverage.out
@@ -50,7 +50,7 @@ jobs:
     name: e2e (POSIX shell)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
           go-version: "1.25.x"
@@ -76,7 +76,7 @@ jobs:
           - goos: windows
             goarch: arm64
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
           go-version: "1.25.x"
@@ -88,7 +88,7 @@ jobs:
         run: |
           mkdir -p bin
           go build -trimpath -o "bin/agentguard-${{ matrix.goos }}-${{ matrix.goarch }}" ./cmd/agentguard
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: agentguard-${{ matrix.goos }}-${{ matrix.goarch }}
           path: bin/agentguard-${{ matrix.goos }}-${{ matrix.goarch }}*
