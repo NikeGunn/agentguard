@@ -5,6 +5,74 @@ All notable changes to AgentGuard are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — Milestone 3
+
+### Added
+- **Agent detection** (`internal/agent_detect/`): one detector per agent
+  (Claude Code, Cursor, Codex CLI, Gemini CLI, Windsurf). Each knows the
+  union of historic config paths for its agent and parses MCP entries into
+  a typed `Detection` struct. Codex uses TOML (`BurntSushi/toml`), the
+  others use JSON.
+- **Config patcher** (`internal/agent_detect/patcher.go`): rewrites every
+  stdio MCP entry to invoke `agentguard wrap --upstream-name <name> -- …`.
+  Backs the original up to `<path>.agentguard.bak` **byte-for-byte** before
+  any rewrite. Idempotent (a second run wraps nothing twice). HTTP entries
+  and entries the user names in `--skip-server` are left alone.
+- **`agentguard init`** (`internal/cli/init.go`): creates
+  `~/.agentguard/{bin,data,logs,packs,config}` mode 0700, runs migrations,
+  detects every supported agent, patches their configs, records one
+  `agents` row + one `audit_log` row per detection. `--non-interactive` is
+  the M3 default; the Bubble Tea checklist arrives with the dashboard in M4.
+  `--dry-run` previews without writing.
+- **`agentguard uninstall`** (`internal/cli/uninstall.go`): reads every
+  active `agents` row, restores each config from its `.agentguard.bak` (and
+  removes the backup), marks the row inactive. `--purge` additionally deletes
+  `~/.agentguard` recursively; otherwise audit data is preserved.
+- **`agentguard doctor`** (`internal/cli/doctor.go`): homebrew-style health
+  check. Verifies the directory tree, runs `PRAGMA integrity_check`, counts
+  active agents and recorded `tool_calls`, re-detects each agent and reports
+  how many of its servers are still routed through us, and lists the
+  builtin rule packs. Exit code is 0 unless any check fails outright.
+- **`agentguard tail`** (`internal/cli/tail.go`): Bubble Tea TUI showing the
+  most recent N tool calls polled from SQLite every 500 ms. Colour-coded
+  verdict glyph (✓ allow, ✗ block, ⚠ flag, ✎ transform, · pending),
+  truncated columns for time/server/tool/latency/reason. `--once` prints a
+  single ASCII snapshot for non-TTY use.
+- **`agentguard scan`** (`internal/cli/scan.go`): spawns an upstream MCP
+  server and fires 8 canned prompt-injection probes (ignore-previous,
+  system-prompt override, base64 marker, zero-width chars, you-are-now,
+  data-exfil marker, policy override, HTML script). Reports per-payload
+  reflection and exits non-zero if any payload reached the model surface.
+  Designed for CI. The full 50+ payload library arrives in M5.
+- **`internal/cli/paths.go`**: shared `~/.agentguard` layout resolver
+  (`Paths()` and `EnsurePaths`) used by init, uninstall, and doctor.
+- **e2e tests**:
+  - `TestInitAndUninstallRoundtrip` — real binary, fake `HOME`, init then
+    uninstall, asserts the patched config invokes `agentguard wrap …` and
+    that the post-uninstall file is **byte-identical** to the original
+    (the §13 definition-of-done promise).
+  - `TestDoctorReportsHealthyAfterInit` — init then doctor, asserts
+    `agents: 1 active` and that all builtin packs are listed.
+- **Unit tests**: 13 new across `internal/agent_detect` covering each
+  detector, idempotent patching, HTTP-entry skipping, `--skip-server`,
+  byte-identical backup + restore, and the TOML/Codex code path.
+
+### Changed
+- `cmd/agentguard` root now registers `init`, `uninstall`, `doctor`,
+  `tail`, and `scan` alongside the M1/M2 commands.
+
+### Dependencies
+- Added `github.com/charmbracelet/bubbletea` and `lipgloss` for the TUI.
+- Added `github.com/BurntSushi/toml` for Codex CLI config parsing.
+
+### Deliberately deferred
+- Stage 2 (server attestation) — the binary-hash check needs the registry
+  package (npm/PyPI/GitHub metadata fetchers) which needs network and is
+  M4 work.
+- Bubble Tea checklist for `init` — lands with the dashboard in M4.
+- Full 50+ scan-payload library — M5.
+- `agentguard daemon` supervisor — M4/M6 depending on platform.
+
 ## [Unreleased] — Milestone 2
 
 ### Added

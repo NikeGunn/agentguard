@@ -1,6 +1,7 @@
-// Package cli builds the cobra command tree. Only `wrap` and `--version` are
-// implemented in milestone 1; the rest of the commands are file-stubs that
-// land in subsequent milestones.
+// Package cli builds the cobra command tree.
+// Milestone 1: wrap, version.
+// Milestone 2: pack flag on wrap (no new command).
+// Milestone 3: init, uninstall, doctor, tail, scan.
 package cli
 
 import (
@@ -23,5 +24,10 @@ func NewRoot() *cobra.Command {
 	cmd.SetVersionTemplate("agentguard {{.Version}}\n")
 	cmd.AddCommand(newWrapCmd())
 	cmd.AddCommand(newVersionCmd())
+	cmd.AddCommand(newInitCmd())
+	cmd.AddCommand(newUninstallCmd())
+	cmd.AddCommand(newDoctorCmd())
+	cmd.AddCommand(newTailCmd())
+	cmd.AddCommand(newScanCmd())
 	return cmd
 }
