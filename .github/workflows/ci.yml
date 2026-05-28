@@ -1,4 +1,4 @@
-﻿name: ci
+name: ci
 
 on:
   push:
@@ -34,7 +34,7 @@ jobs:
       - name: Vet
         run: go vet ./...
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
           version: v2.5.0
           args: --timeout=5m
