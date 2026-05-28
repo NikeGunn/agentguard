@@ -1,0 +1,4 @@
+# CODEOWNERS — auto-requested reviewer on every PR.
+# Solo dev: everything routes to @NikeGunn.
+
+*       @NikeGunn
