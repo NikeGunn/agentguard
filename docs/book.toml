@@ -1,2 +1,16 @@
-﻿# placeholder — milestone 2+
+[book]
+title = "AgentGuard"
+authors = ["AgentGuard contributors"]
+description = "Zero-trust security sidecar for AI agents"
+src = "src"
+language = "en"
 
+[output.html]
+default-theme = "navy"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/agentguard/agentguard"
+edit-url-template = "https://github.com/agentguard/agentguard/edit/main/docs/{path}"
+
+[output.html.fold]
+enable = true
+level = 1

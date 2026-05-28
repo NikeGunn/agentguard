@@ -1,2 +1,131 @@
-﻿# placeholder — milestone 2+
+name: release
 
+# Triggers on any tag of the form v*. Cross-builds the binary for
+# darwin/linux/windows × amd64/arm64, computes SHA-256s, signs them with
+# cosign (keyless OIDC), and attaches everything to the GitHub release.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  id-token: write   # for cosign keyless OIDC
+
+jobs:
+  build:
+    name: build ${{ matrix.os }}/${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+          - os: linux
+            arch: arm64
+          - os: darwin
+            arch: amd64
+          - os: darwin
+            arch: arm64
+          - os: windows
+            arch: amd64
+          - os: windows
+            arch: arm64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.7'
+          cache: true
+
+      - name: Resolve version
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        env:
+          GOOS:   ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: '0'
+        run: |
+          mkdir -p dist
+          ext=""
+          if [ "$GOOS" = "windows" ]; then ext=".exe"; fi
+          go build -trimpath \
+            -ldflags="-s -w -X github.com/agentguard/agentguard/internal/version.Version=${{ steps.ver.outputs.version }}" \
+            -o dist/agentguard${ext} ./cmd/agentguard
+
+      - name: Package
+        run: |
+          cd dist
+          if [ "${{ matrix.os }}" = "windows" ]; then
+            archive="agentguard_${{ steps.ver.outputs.version }}_${{ matrix.os }}_${{ matrix.arch }}.zip"
+            zip "$archive" agentguard.exe
+          else
+            archive="agentguard_${{ steps.ver.outputs.version }}_${{ matrix.os }}_${{ matrix.arch }}.tar.gz"
+            tar -czf "$archive" agentguard
+          fi
+          sha256sum "$archive" > "$archive.sha256"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}-${{ matrix.arch }}
+          path: dist/agentguard_*
+
+  release:
+    name: release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Aggregate checksums
+        run: |
+          cd dist
+          # Drop the per-archive .sha256 stubs and produce one combined file.
+          cat *.sha256 | awk '{print $1"  "$2}' > checksums.txt
+          rm -f *.sha256
+          cat checksums.txt
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.2.4'
+
+      - name: Sign checksums (keyless)
+        env:
+          COSIGN_EXPERIMENTAL: '1'
+        run: |
+          cd dist
+          cosign sign-blob --yes \
+            --output-signature checksums.txt.sig \
+            --output-certificate checksums.txt.pem \
+            checksums.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/agentguard_*.tar.gz
+            dist/agentguard_*.zip
+            dist/checksums.txt
+            dist/checksums.txt.sig
+            dist/checksums.txt.pem
+          generate_release_notes: true
+          body: |
+            ## Verifying this release
+
+            ```bash
+            cosign verify-blob \
+              --certificate checksums.txt.pem \
+              --signature   checksums.txt.sig \
+              --certificate-identity-regexp 'https://github.com/agentguard/agentguard' \
+              --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+              checksums.txt
+            sha256sum -c checksums.txt --ignore-missing
+            ```
