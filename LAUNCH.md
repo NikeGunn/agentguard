@@ -18,7 +18,7 @@ file in the repo for the maintainers' reference.
 - [ ] Three testimonials (recruit beta users)
 - [ ] Sponsor box configured
 - [ ] HN / Reddit / Twitter posts queued
-- [ ] Domain `agentguard.dev` configured with install redirects
+- [ ] Domain `agentguard.space` configured with install redirects
 
 ## HN post draft
 
@@ -65,7 +65,7 @@ file in the repo for the maintainers' reference.
    security sidecar for AI agents. Catches prompt injection, tool
    poisoning, rug pulls, secret exfiltration. 👇
 
-2. `curl -fsSL agentguard.dev/install | sh && agentguard init` — your
+2. `curl -fsSL agentguard.space/install | sh && agentguard init` — your
    agent's next tool call is now inspected. Local-only. No cloud.
 
 3. 5-stage pipeline. Per-session circuit breaker. Live dashboard with

@@ -33,7 +33,7 @@ jobs:
         run: |
           mkdir -p _site
           cp -r site/* _site/
-          # When you buy agentguard.dev:
+          # When you buy agentguard.space:
           #   1. rename site/CNAME.disabled to site/CNAME
           #   2. add a CNAME DNS record pointing to nikegunn.github.io
           #   3. push - this step picks it up automatically.

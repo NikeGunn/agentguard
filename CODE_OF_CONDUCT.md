@@ -16,5 +16,5 @@ orientation.
 ## Reporting
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the project maintainers at `conduct@agentguard.dev`. All complaints
+reported to the project maintainers at `conduct@agentguard.space`. All complaints
 will be reviewed and investigated promptly and fairly.

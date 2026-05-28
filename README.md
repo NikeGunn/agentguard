@@ -17,7 +17,7 @@ pulls**, **runaway loops**, and **credential exfiltration** before they
 reach your model — or your customers' data.
 
 ```bash
-curl -fsSL https://agentguard.dev/install | sh
+curl -fsSL https://agentguard.space/install | sh
 agentguard init        # detects + patches every installed agent
 agentguard dashboard   # opens http://127.0.0.1:7878
 ```

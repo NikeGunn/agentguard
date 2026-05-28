@@ -3,7 +3,7 @@
 ## macOS / Linux
 
 ```bash
-curl -fsSL https://agentguard.dev/install | sh
+curl -fsSL https://agentguard.space/install | sh
 ```
 
 This installs to `~/.agentguard/bin/agentguard` and adds it to your
@@ -12,7 +12,7 @@ This installs to `~/.agentguard/bin/agentguard` and adds it to your
 ## Windows (PowerShell)
 
 ```powershell
-iwr -useb https://agentguard.dev/install.ps1 | iex
+iwr -useb https://agentguard.space/install.ps1 | iex
 ```
 
 Installs to `%USERPROFILE%\.agentguard\bin\agentguard.exe` and appends

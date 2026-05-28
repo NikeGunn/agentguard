@@ -116,12 +116,12 @@ Verify under: https://github.com/nikegunn/agentguard/releases
 
 ---
 
-## 6. When you buy `agentguard.dev` (3 days from now)
+## 6. When you buy `agentguard.space` (3 days from now)
 
 ```bash
 # 1. Rename the placeholder CNAME so Pages picks it up
 git mv site/CNAME.disabled site/CNAME
-git commit -m "feat(site): enable custom domain agentguard.dev"
+git commit -m "feat(site): enable custom domain agentguard.space"
 git push
 
 # 2. At your DNS provider, add these records:
@@ -132,7 +132,7 @@ git push
 #    A      @    →  185.199.111.153
 
 # 3. In GitHub repo Settings → Pages, set the custom domain to
-#    agentguard.dev and check "Enforce HTTPS".
+#    agentguard.space and check "Enforce HTTPS".
 ```
 
 ---

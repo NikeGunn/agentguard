@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - ✅ Docs site is complete for every command
 - ⏳ README 30s GIF — record before tagging v1.0.0
 - ⏳ Three testimonials — recruit beta users in the launch week
-- ⏳ Domain `agentguard.dev` install redirects — operator config
+- ⏳ Domain `agentguard.space` install redirects — operator config
 
 ## [Unreleased] — Milestone 5
 
