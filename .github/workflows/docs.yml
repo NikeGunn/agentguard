@@ -1,7 +1,7 @@
 name: docs
 
 # Build the mdbook docs site on demand. Pages itself is published via
-# pages.yml from site/ — this workflow just lints the mdbook source so
+# pages.yml from site/. This workflow just lints the mdbook source so
 # we don't ship broken links.
 
 on:
@@ -18,14 +18,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install mdbook
         run: |
           curl -fsSL https://github.com/rust-lang/mdBook/releases/download/v0.4.40/mdbook-v0.4.40-x86_64-unknown-linux-gnu.tar.gz \
             | tar -xz -C /usr/local/bin
       - name: Build docs
         run: mdbook build docs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: docs-html
           path: docs/book
