@@ -52,8 +52,10 @@ jobs:
           mkdir -p dist
           ext=""
           if [ "$GOOS" = "windows" ]; then ext=".exe"; fi
+          COMMIT="${GITHUB_SHA:0:7}"
+          DATE="$(date -u +%Y-%m-%d)"
           go build -trimpath \
-            -ldflags="-s -w -X github.com/nikegunn/agentguard/internal/version.Version=${{ steps.ver.outputs.version }}" \
+            -ldflags "-s -w -X github.com/agentguard/agentguard/internal/version.Version=v${{ steps.ver.outputs.version }} -X github.com/agentguard/agentguard/internal/version.Commit=${COMMIT} -X github.com/agentguard/agentguard/internal/version.Date=${DATE}" \
             -o dist/agentguard${ext} ./cmd/agentguard
 
       - name: Package
