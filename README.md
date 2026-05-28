@@ -1,10 +1,11 @@
 # AgentGuard
 
-[![release](https://img.shields.io/github/v/release/agentguard/agentguard?sort=semver)](https://github.com/agentguard/agentguard/releases)
-[![CI](https://github.com/agentguard/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/agentguard/agentguard/actions/workflows/ci.yml)
+[![release](https://img.shields.io/github/v/release/nikegunn/agentguard?sort=semver)](https://github.com/nikegunn/agentguard/releases)
+[![CI](https://github.com/nikegunn/agentguard/actions/workflows/ci.yml/badge.svg)](https://github.com/nikegunn/agentguard/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![go report](https://goreportcard.com/badge/github.com/agentguard/agentguard)](https://goreportcard.com/report/github.com/agentguard/agentguard)
+[![go report](https://goreportcard.com/badge/github.com/nikegunn/agentguard)](https://goreportcard.com/report/github.com/nikegunn/agentguard)
 [![cosign-signed](https://img.shields.io/badge/cosign-signed-success)](https://docs.sigstore.dev/cosign/overview/)
+[![landing-page](https://img.shields.io/badge/site-nikegunn.github.io%2Fagentguard-4ad6ff)](https://nikegunn.github.io/agentguard/)
 
 > Zero-trust security sidecar for AI agents — Claude Code, Cursor, Codex,
 > Gemini CLI, Windsurf, or anything that speaks MCP.
@@ -23,7 +24,10 @@ agentguard dashboard   # opens http://127.0.0.1:7878
 
 That's it. The next tool call your agent makes is now inspected.
 
-![dashboard screenshot](docs/src/img/dashboard.png)
+![demo](demo/agentguard.gif)
+
+> Demo not rendered yet? Run `vhs demo/agentguard.tape` from the repo
+> root — see [`demo/README.md`](demo/README.md) for the one-time setup.
 
 ## Why
 
@@ -104,5 +108,5 @@ MIT. See [LICENSE](LICENSE).
 ## Sponsors
 
 AgentGuard is built and maintained for free. If your team depends on it,
-[sponsor the project →](https://github.com/sponsors/agentguard) (Bronze /
+[sponsor the project →](https://github.com/sponsors/nikegunn) (Bronze /
 Silver / Gold tiers).

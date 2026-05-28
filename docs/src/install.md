@@ -21,7 +21,7 @@ the directory to the user `PATH`.
 ## From source
 
 ```bash
-git clone https://github.com/agentguard/agentguard
+git clone https://github.com/nikegunn/agentguard
 cd agentguard
 go install ./cmd/agentguard
 ```
@@ -37,7 +37,7 @@ keyless OIDC via GitHub Actions. To verify a downloaded archive:
 cosign verify-blob \
   --certificate checksums.txt.pem \
   --signature   checksums.txt.sig \
-  --certificate-identity-regexp 'https://github.com/agentguard/agentguard' \
+  --certificate-identity-regexp 'https://github.com/nikegunn/agentguard' \
   --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
   checksums.txt
 sha256sum -c checksums.txt --ignore-missing

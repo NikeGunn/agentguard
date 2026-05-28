@@ -8,8 +8,8 @@ language = "en"
 [output.html]
 default-theme = "navy"
 preferred-dark-theme = "navy"
-git-repository-url = "https://github.com/agentguard/agentguard"
-edit-url-template = "https://github.com/agentguard/agentguard/edit/main/docs/{path}"
+git-repository-url = "https://github.com/nikegunn/agentguard"
+edit-url-template = "https://github.com/nikegunn/agentguard/edit/main/docs/{path}"
 
 [output.html.fold]
 enable = true

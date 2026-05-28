@@ -15,7 +15,7 @@
 
 set -eu
 
-REPO="agentguard/agentguard"
+REPO="nikegunn/agentguard"
 VERSION="latest"
 INSTALL_DIR="${AGENTGUARD_HOME:-$HOME/.agentguard}/bin"
 

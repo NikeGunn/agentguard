@@ -9,7 +9,7 @@
 param(
     [string]$Version = "latest",
     [string]$InstallDir = "$env:USERPROFILE\.agentguard\bin",
-    [string]$Repo = "agentguard/agentguard"
+    [string]$Repo = "nikegunn/agentguard"
 )
 
 $ErrorActionPreference = "Stop"
