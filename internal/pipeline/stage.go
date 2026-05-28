@@ -1,6 +1,6 @@
 // Package pipeline defines the inspection-stage interface and the chain
-// runner. Real stages land in milestones 2-5; this milestone only fixes the
-// shape so callers can compile against it.
+// runner. Milestone 1 shipped the empty chain. Milestone 2 adds the cheap
+// path: transport guard, schema validator, policy engine, content scanner.
 package pipeline
 
 import (
@@ -16,8 +16,8 @@ const (
 	Inbound  Direction = "inbound"  // tool → agent
 )
 
-// Verdict is the per-stage outcome. Stages can return any of these; the
-// chain runner aggregates them into a final verdict for the call.
+// Verdict is the per-stage outcome. The chain aggregates them into a final
+// verdict for the call.
 type Verdict string
 
 const (
@@ -29,21 +29,27 @@ const (
 	VerdictError     Verdict = "error"
 )
 
-// Message is the unit a stage inspects. The proxy fills these from raw
-// JSON-RPC frames before invoking the chain.
+// Message is the unit a stage inspects. The proxy parses the JSON-RPC frame
+// once and fills these fields before invoking the chain so stages don't each
+// re-parse. Raw always holds the exact bytes received from the wire (newline
+// included); transforms replace Raw via StageResult.Transform.
 type Message struct {
+	SessionID  string
 	ServerName string
-	ToolName   string
+	ToolName   string    // resolved from tools/call params, "" otherwise
+	Method     string    // JSON-RPC method
 	Direction  Direction
-	Raw        []byte // the JSON-RPC bytes as seen on the wire
+	Raw        []byte
 }
 
 // StageResult is what a stage returns. Detail is JSON-encoded for storage.
+// Transform, when non-nil and Verdict == VerdictTransform, replaces Raw on
+// the message before the next stage runs and is what the proxy forwards.
 type StageResult struct {
 	Verdict   Verdict
 	Reason    string
 	Detail    string
-	Transform []byte // populated only when Verdict == VerdictTransform
+	Transform []byte
 }
 
 // Stage is the interface every inspection stage implements.
@@ -66,16 +72,16 @@ func (c *Chain) Stages() []Stage { return c.stages }
 // Trace is the per-stage record produced by Run, suitable for persisting to
 // tool_call_stages.
 type Trace struct {
-	Stage      string
-	Order      int
-	StartedAt  time.Time
-	Duration   time.Duration
-	Result     StageResult
+	Stage     string
+	Order     int
+	StartedAt time.Time
+	Duration  time.Duration
+	Result    StageResult
 }
 
-// Run executes the chain in order. It stops on the first non-pass verdict
-// other than Flag (which is informational and lets execution continue).
-// Milestone 1 ships with an empty chain so this always returns ({}, pass).
+// Run executes the chain in order. It short-circuits on the first Block or
+// Error verdict (Flag is informational, Transform mutates the message but
+// continues). The final verdict is the most severe outcome seen.
 func (c *Chain) Run(ctx context.Context, m *Message) ([]Trace, Verdict) {
 	traces := make([]Trace, 0, len(c.stages))
 	final := VerdictPass
@@ -83,17 +89,20 @@ func (c *Chain) Run(ctx context.Context, m *Message) ([]Trace, Verdict) {
 		started := time.Now()
 		res := s.Run(ctx, m)
 		traces = append(traces, Trace{
-			Stage:     s.Name(),
-			Order:     i,
-			StartedAt: started,
-			Duration:  time.Since(started),
-			Result:    res,
+			Stage: s.Name(), Order: i,
+			StartedAt: started, Duration: time.Since(started),
+			Result: res,
 		})
 		switch res.Verdict {
 		case VerdictBlock, VerdictError:
 			return traces, res.Verdict
 		case VerdictTransform:
-			final = VerdictTransform
+			if len(res.Transform) > 0 {
+				m.Raw = res.Transform
+			}
+			if final == VerdictPass || final == VerdictFlag {
+				final = VerdictTransform
+			}
 		case VerdictFlag:
 			if final == VerdictPass {
 				final = VerdictFlag

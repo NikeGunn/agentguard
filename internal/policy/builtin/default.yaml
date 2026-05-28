@@ -1,0 +1,103 @@
+name: default
+version: 1
+description: |
+  AgentGuard's default rule pack. Safe for solo developers and hobby projects.
+  Redacts well-known secrets in either direction, flags common prompt-injection
+  signatures, and blocks the handful of destructive shell commands that account
+  for almost all "agent ran wild" incidents in the wild.
+
+rules:
+  # ── secret redaction ───────────────────────────────────────────────────────
+  - id: redact-aws-access-key
+    match:
+      content_regex: 'AKIA[0-9A-Z]{16}'
+    action: redact
+
+  - id: redact-aws-secret-key
+    match:
+      content_regex: '(?i)aws_secret_access_key["'']?\s*[:=]\s*["'']?[A-Za-z0-9/+=]{40}'
+    action: redact
+
+  - id: redact-github-token
+    match:
+      content_regex: 'gh[pousr]_[A-Za-z0-9]{30,}'
+    action: redact
+
+  - id: redact-stripe-key
+    match:
+      content_regex: '(?:sk|rk)_live_[A-Za-z0-9]{20,}'
+    action: redact
+
+  - id: redact-openai-key
+    match:
+      content_regex: 'sk-(?:proj-)?[A-Za-z0-9_-]{20,}'
+    action: redact
+
+  - id: redact-anthropic-key
+    match:
+      content_regex: 'sk-ant-[A-Za-z0-9_-]{20,}'
+    action: redact
+
+  - id: redact-google-api-key
+    match:
+      content_regex: 'AIza[0-9A-Za-z_-]{35}'
+    action: redact
+
+  - id: redact-slack-token
+    match:
+      content_regex: 'xox[baprs]-[A-Za-z0-9-]{10,}'
+    action: redact
+
+  - id: redact-private-ssh-key
+    match:
+      content_regex: '-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----'
+    action: redact
+
+  - id: redact-jwt
+    match:
+      content_regex: 'eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'
+    action: redact
+
+  # ── prompt-injection signatures (cheap heuristics only) ────────────────────
+  - id: flag-ignore-previous-instructions
+    match:
+      direction: inbound
+      content_regex: '(?i)ignore\s+(?:all\s+)?previous\s+instructions'
+    action: flag
+
+  - id: flag-you-are-now
+    match:
+      direction: inbound
+      content_regex: '(?i)you\s+are\s+now\s+(?:a|an|the)'
+    action: flag
+
+  - id: flag-system-prompt-override
+    match:
+      direction: inbound
+      content_regex: '(?i)(?:new|updated)\s+system\s+(?:prompt|instructions)'
+    action: flag
+
+  # ── obviously destructive shell commands ───────────────────────────────────
+  - id: block-rm-rf-root
+    match:
+      direction: outbound
+      content_regex: 'rm\s+-[rRfF]+\s+/(?:\s|$|"|'')'
+    action: block
+
+  - id: block-fork-bomb
+    match:
+      direction: outbound
+      content_regex: ':\(\)\s*\{\s*:\|:&\s*\};:'
+    action: block
+
+  - id: block-mkfs
+    match:
+      direction: outbound
+      content_regex: '\bmkfs\.[a-z0-9]+\s+/dev/'
+    action: block
+
+  - id: block-dd-zero
+    match:
+      direction: outbound
+      content_regex: '\bdd\s+if=/dev/(?:zero|random|urandom)\s+of=/dev/[sh]d[a-z]'
+    action: block

@@ -99,10 +99,11 @@ func RunStdio(ctx context.Context, cfg StdioConfig) (int, error) {
 	}
 
 	state := &sessionState{
-		sessionID: sessionID,
-		serverID:  serverID,
-		chain:     cfg.Chain,
-		st:        cfg.Store,
+		sessionID:  sessionID,
+		serverID:   serverID,
+		serverName: cfg.UpstreamName,
+		chain:      cfg.Chain,
+		st:         cfg.Store,
 	}
 
 	var wg sync.WaitGroup
@@ -150,6 +151,7 @@ func RunStdio(ctx context.Context, cfg StdioConfig) (int, error) {
 type sessionState struct {
 	sessionID    string
 	serverID     string
+	serverName   string
 	chain        *pipeline.Chain
 	st           *store.Store
 	totalCalls   atomic.Int64
@@ -192,37 +194,60 @@ func (s *sessionState) handleFrame(ctx context.Context, raw []byte, dst io.Write
 		return
 	}
 
-	// Run the inspection chain. For M1 the chain is empty so this is free.
-	if s.chain != nil {
-		pmsg := &pipeline.Message{
-			ServerName: "",
-			ToolName:   extractToolName(&msg),
-			Direction:  dir,
-			Raw:        raw,
-		}
-		traces, verdict := s.chain.Run(ctx, pmsg)
-		if verdict == pipeline.VerdictBlock {
-			s.totalBlocked.Add(1)
-			// Synthesise an error response and DO NOT forward to upstream.
-			if reply := errorResponse(&msg, "Blocked by AgentGuard"); reply != nil {
-				_, _ = dst.Write(reply)
-			}
-			s.recordCall(&msg, dir, raw, "block", traces)
-			return
-		}
-		s.recordCall(&msg, dir, raw, "allow", traces)
-	} else {
-		s.recordCall(&msg, dir, raw, "allow", nil)
+	if s.chain == nil {
+		s.recordCall(&msg, dir, raw, "allow", "", nil)
+		_, _ = dst.Write(raw)
+		return
 	}
 
-	_, _ = dst.Write(raw)
+	pmsg := &pipeline.Message{
+		SessionID:  s.sessionID,
+		ServerName: s.serverName,
+		ToolName:   extractToolName(&msg),
+		Method:     msg.Method,
+		Direction:  dir,
+		Raw:        raw,
+	}
+	traces, verdict := s.chain.Run(ctx, pmsg)
+
+	switch verdict {
+	case pipeline.VerdictBlock:
+		s.totalBlocked.Add(1)
+		if reply := errorResponse(&msg, firstBlockReason(traces)); reply != nil {
+			_, _ = dst.Write(reply)
+		}
+		s.recordCall(&msg, dir, raw, "block", firstBlockReason(traces), traces)
+		return
+	case pipeline.VerdictTransform:
+		// Forward the (possibly redacted) bytes from pmsg.Raw — Chain.Run
+		// rewrites it in place when a stage returns a Transform.
+		out := pmsg.Raw
+		if len(out) > 0 && out[len(out)-1] != '\n' {
+			out = append(out, '\n')
+		}
+		_, _ = dst.Write(out)
+		s.recordCall(&msg, dir, raw, "transform", firstTransformReason(traces), traces)
+		return
+	case pipeline.VerdictFlag:
+		s.recordCall(&msg, dir, raw, "flag", firstFlagReason(traces), traces)
+		_, _ = dst.Write(raw)
+		return
+	default:
+		s.recordCall(&msg, dir, raw, "allow", "", traces)
+		_, _ = dst.Write(raw)
+	}
 }
 
 // recordCall persists a tool_calls row (and stage rows, if traces present).
-// We only record JSON-RPC *requests* (msg.Method set) to keep the table
-// meaningful; responses are correlated by the agent via the request ID.
-func (s *sessionState) recordCall(msg *jsonrpcMessage, dir pipeline.Direction, raw []byte, verdict string, traces []pipeline.Trace) {
-	if msg.Method == "" {
+//
+// We record:
+//   - Every outbound JSON-RPC request (msg.Method set, msg.ID set).
+//   - Every inbound frame the pipeline took non-trivial action on (verdict
+//     is anything other than "allow"). Plain allowed responses are skipped
+//     to keep the table from doubling in size — they're correlated to the
+//     outbound row by request id.
+func (s *sessionState) recordCall(msg *jsonrpcMessage, dir pipeline.Direction, raw []byte, verdict, reason string, traces []pipeline.Trace) {
+	if msg.Method == "" && verdict == "allow" {
 		return
 	}
 	s.totalCalls.Add(1)
@@ -230,6 +255,10 @@ func (s *sessionState) recordCall(msg *jsonrpcMessage, dir pipeline.Direction, r
 	now := store.NowMS()
 	size := int64(len(raw))
 	requestInline := string(raw)
+	var reasonPtr *string
+	if reason != "" {
+		reasonPtr = &reason
+	}
 	tc := &store.ToolCall{
 		ID:               id,
 		SessionID:        s.sessionID,
@@ -239,6 +268,7 @@ func (s *sessionState) recordCall(msg *jsonrpcMessage, dir pipeline.Direction, r
 		StartedAt:        now,
 		CompletedAt:      &now,
 		Verdict:          verdict,
+		VerdictReason:    reasonPtr,
 		RequestSizeBytes: &size,
 		RequestInline:    &requestInline,
 	}
@@ -278,12 +308,19 @@ func extractToolName(msg *jsonrpcMessage) string {
 }
 
 // displayTool returns a human-friendly identifier for a tool_calls row:
-// "tools/call:read_file" for tool invocations, else the bare method.
+// "tools/call:read_file" for tool invocations, the bare method for plain
+// requests, "response" for inbound success responses, "error" for errors.
 func displayTool(msg *jsonrpcMessage) string {
 	if tn := extractToolName(msg); tn != "" {
 		return msg.Method + ":" + tn
 	}
-	return msg.Method
+	if msg.Method != "" {
+		return msg.Method
+	}
+	if len(msg.Error) > 0 {
+		return "error"
+	}
+	return "response"
 }
 
 // errorResponse builds a JSON-RPC error response correlated to msg.ID.
@@ -310,6 +347,39 @@ func errorResponse(msg *jsonrpcMessage, reason string) []byte {
 }
 
 func stringPtr(s string) *string { return &s }
+
+// firstBlockReason returns the Reason of the first blocking trace, or a
+// generic fallback. Used both for the JSON-RPC error message we send back to
+// the agent and for tool_calls.verdict_reason.
+func firstBlockReason(traces []pipeline.Trace) string {
+	for _, t := range traces {
+		if t.Result.Verdict == pipeline.VerdictBlock || t.Result.Verdict == pipeline.VerdictError {
+			if t.Result.Reason != "" {
+				return t.Stage + ":" + t.Result.Reason
+			}
+			return t.Stage
+		}
+	}
+	return "blocked"
+}
+
+func firstTransformReason(traces []pipeline.Trace) string {
+	for _, t := range traces {
+		if t.Result.Verdict == pipeline.VerdictTransform && t.Result.Reason != "" {
+			return t.Stage + ":" + t.Result.Reason
+		}
+	}
+	return "transformed"
+}
+
+func firstFlagReason(traces []pipeline.Trace) string {
+	for _, t := range traces {
+		if t.Result.Verdict == pipeline.VerdictFlag && t.Result.Reason != "" {
+			return t.Stage + ":" + t.Result.Reason
+		}
+	}
+	return "flagged"
+}
 
 func trimRightNewlines(b []byte) []byte {
 	for len(b) > 0 && (b[len(b)-1] == '\n' || b[len(b)-1] == '\r') {

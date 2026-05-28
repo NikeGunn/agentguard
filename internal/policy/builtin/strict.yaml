@@ -1,0 +1,44 @@
+name: strict
+version: 1
+description: |
+  Strict pack — block-by-default for inbound tool results that look like
+  prompt injection, in addition to all of default's redaction rules.
+
+rules:
+  - id: block-ignore-previous-instructions
+    match:
+      direction: inbound
+      content_regex: '(?i)ignore\s+(?:all\s+)?previous\s+instructions'
+    action: block
+
+  - id: block-system-prompt-override
+    match:
+      direction: inbound
+      content_regex: '(?i)(?:new|updated)\s+system\s+(?:prompt|instructions)'
+    action: block
+
+  - id: redact-aws-access-key
+    match:
+      content_regex: 'AKIA[0-9A-Z]{16}'
+    action: redact
+
+  - id: redact-github-token
+    match:
+      content_regex: 'gh[pousr]_[A-Za-z0-9]{30,}'
+    action: redact
+
+  - id: redact-openai-key
+    match:
+      content_regex: 'sk-(?:proj-)?[A-Za-z0-9_-]{20,}'
+    action: redact
+
+  - id: redact-anthropic-key
+    match:
+      content_regex: 'sk-ant-[A-Za-z0-9_-]{20,}'
+    action: redact
+
+  - id: block-rm-rf-root
+    match:
+      direction: outbound
+      content_regex: 'rm\s+-[rRfF]+\s+/(?:\s|$|"|'')'
+    action: block
