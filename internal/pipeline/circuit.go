@@ -52,10 +52,10 @@ type CircuitBreakerStage struct {
 }
 
 type sessionCircuit struct {
-	state      CircuitState
-	openedAt   time.Time
-	blocks     []time.Time
-	errors     []time.Time
+	state    CircuitState
+	openedAt time.Time
+	blocks   []time.Time
+	errors   []time.Time
 }
 
 // NewCircuitBreakerStage returns a configured breaker.

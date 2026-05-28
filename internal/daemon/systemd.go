@@ -1,4 +1,3 @@
-﻿package daemon
+package daemon
 
 // TODO milestone 6 linux systemd
-

@@ -2,9 +2,10 @@
 package version
 
 // These three are overridden at link time:
-//   go build -ldflags "-X github.com/agentguard/agentguard/internal/version.Version=v0.1.0 \
-//                      -X github.com/agentguard/agentguard/internal/version.Commit=abcdef \
-//                      -X github.com/agentguard/agentguard/internal/version.Date=2026-05-28"
+//
+//	go build -ldflags "-X github.com/agentguard/agentguard/internal/version.Version=v0.1.0 \
+//	                   -X github.com/agentguard/agentguard/internal/version.Commit=abcdef \
+//	                   -X github.com/agentguard/agentguard/internal/version.Date=2026-05-28"
 var (
 	Version = "dev"
 	Commit  = "none"

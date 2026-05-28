@@ -14,9 +14,9 @@ import (
 
 // Metadata is the registry-agnostic shape every fetcher returns.
 type Metadata struct {
-	Source      string    // "npm", "pypi", "github"
-	Name        string    // canonical identifier
-	Version     string    // latest published / default branch SHA prefix
+	Source      string // "npm", "pypi", "github"
+	Name        string // canonical identifier
+	Version     string // latest published / default branch SHA prefix
 	Description string
 	Homepage    string
 	Repository  string

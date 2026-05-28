@@ -67,12 +67,12 @@ func newTailCmd() *cobra.Command {
 
 // tailRow is one displayed call.
 type tailRow struct {
-	Time     time.Time
-	Server   string
-	Tool     string
-	Dir      string
-	Verdict  string
-	Reason   string
+	Time      time.Time
+	Server    string
+	Tool      string
+	Dir       string
+	Verdict   string
+	Reason    string
 	LatencyMS int64
 }
 

@@ -33,7 +33,6 @@ type fakePipe struct {
 	max    int
 	mu     sync.Mutex
 	cond   *sync.Cond
-	done   bool
 }
 
 func newFakePipe(frame []byte, n int) *fakePipe {

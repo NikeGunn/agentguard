@@ -12,7 +12,7 @@ type fakeStage struct {
 	out  StageResult
 }
 
-func (f fakeStage) Name() string                            { return f.name }
+func (f fakeStage) Name() string                              { return f.name }
 func (f fakeStage) Run(context.Context, *Message) StageResult { return f.out }
 
 func TestEmptyChainPasses(t *testing.T) {

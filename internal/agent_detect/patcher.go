@@ -33,11 +33,11 @@ type PatchOptions struct {
 
 // PatchResult is the outcome of a single Apply call.
 type PatchResult struct {
-	ConfigPath      string
-	BackupPath      string
-	OriginalSHA256  string
-	RewrittenCount  int
-	UnchangedCount  int
+	ConfigPath     string
+	BackupPath     string
+	OriginalSHA256 string
+	RewrittenCount int
+	UnchangedCount int
 }
 
 // AlreadyWrapped reports whether an entry already invokes agentguard, so we
@@ -318,9 +318,8 @@ func atomicWrite(path string, data []byte) error {
 		cleanup()
 		return err
 	}
-	if err := os.Chmod(tmpName, mode); err != nil {
-		// Best effort on Windows; chmod is a no-op for ACL files.
-	}
+	// Best-effort chmod; on Windows this is a no-op for ACL files.
+	_ = os.Chmod(tmpName, mode)
 	if err := os.Rename(tmpName, path); err != nil {
 		cleanup()
 		return err

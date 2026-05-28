@@ -59,8 +59,8 @@ type Decision struct {
 // Rule is one compiled policy rule.
 type Rule struct {
 	ID           string
-	Server       string         // exact match, "" means any
-	Tool         string         // exact match, "" means any
+	Server       string // exact match, "" means any
+	Tool         string // exact match, "" means any
 	Direction    Direction
 	ContentMatch *regexp.Regexp // optional
 	Action       Action

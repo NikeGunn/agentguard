@@ -12,6 +12,27 @@ linters:
     - unused
     - gocritic
     - misspell
+  settings:
+    errcheck:
+      # Exclude well-known no-op or write-to-stdout error returns. CLI
+      # tools print to stdout/stderr where the only failure mode is a
+      # closed pipe; we don't surface that as a real error.
+      exclude-functions:
+        - (io.Closer).Close
+        - (*os.File).Close
+        - (*database/sql.DB).Close
+        - (*database/sql.Rows).Close
+        - (*net/http.Response).Body.Close
+        - (*github.com/agentguard/agentguard/internal/store.Store).Close
+        - fmt.Fprint
+        - fmt.Fprintln
+        - fmt.Fprintf
+  exclusions:
+    # gosimple ST1018 reports zero-width unicode literals; we use them
+    # intentionally in the injection corpus and ML test.
+    rules:
+      - linters: [staticcheck]
+        text: "ST1018"
 issues:
   max-same-issues: 50
 formatters:

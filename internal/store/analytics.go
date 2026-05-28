@@ -44,14 +44,14 @@ type ToolUsage struct {
 
 // ServerSummary is one row on the /servers page.
 type ServerSummary struct {
-	ID          string  `json:"id"`
-	Name        string  `json:"name"`
-	Transport   string  `json:"transport"`
-	TrustScore  *int    `json:"trust_score,omitempty"`
-	FirstSeenAt int64   `json:"first_seen_at"`
-	LastSeenAt  int64   `json:"last_seen_at"`
-	TotalCalls  int64   `json:"total_calls"`
-	Blocks      int64   `json:"blocks"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Transport   string `json:"transport"`
+	TrustScore  *int   `json:"trust_score,omitempty"`
+	FirstSeenAt int64  `json:"first_seen_at"`
+	LastSeenAt  int64  `json:"last_seen_at"`
+	TotalCalls  int64  `json:"total_calls"`
+	Blocks      int64  `json:"blocks"`
 }
 
 // CallRow is one row on the /calls page; identical shape to the tail TUI.

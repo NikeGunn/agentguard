@@ -36,8 +36,8 @@ const (
 type Message struct {
 	SessionID  string
 	ServerName string
-	ToolName   string    // resolved from tools/call params, "" otherwise
-	Method     string    // JSON-RPC method
+	ToolName   string // resolved from tools/call params, "" otherwise
+	Method     string // JSON-RPC method
 	Direction  Direction
 	Raw        []byte
 }

@@ -17,11 +17,11 @@ import (
 // critical command — a bad uninstall kills the project's reputation.
 //
 // Behaviour:
-//   1. Open the store and load every active agents row.
-//   2. For each row, restore the original config from <path>.agentguard.bak.
-//   3. Verify the restore landed (sha256 if available, byte compare otherwise).
-//   4. Mark each agents row inactive (we keep the history).
-//   5. Print a summary; leave ~/.agentguard untouched unless --purge is set.
+//  1. Open the store and load every active agents row.
+//  2. For each row, restore the original config from <path>.agentguard.bak.
+//  3. Verify the restore landed (sha256 if available, byte compare otherwise).
+//  4. Mark each agents row inactive (we keep the history).
+//  5. Print a summary; leave ~/.agentguard untouched unless --purge is set.
 //
 // The "remove the whole ~/.agentguard tree" step is opt-in via --purge so
 // users don't lose audit data by accident. Spec promises an export, which

@@ -12,26 +12,31 @@ import (
 )
 
 func main() {
+	os.Exit(run())
+}
+
+func run() int {
 	if len(os.Args) < 2 {
 		fmt.Fprintln(os.Stderr, "usage: dbcheck <db-path>")
-		os.Exit(2)
+		return 2
 	}
 	db, err := sql.Open("sqlite", "file:"+os.Args[1])
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(2)
+		return 2
 	}
 	defer db.Close()
 	var sessions, calls int
 	if err := db.QueryRow(`SELECT count(*) FROM sessions`).Scan(&sessions); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(2)
+		return 2
 	}
 	if err := db.QueryRow(
 		`SELECT count(*) FROM tool_calls WHERE direction='outbound' AND tool_name LIKE 'tools/call:%'`,
 	).Scan(&calls); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(2)
+		return 2
 	}
 	fmt.Printf("%d %d\n", sessions, calls)
+	return 0
 }

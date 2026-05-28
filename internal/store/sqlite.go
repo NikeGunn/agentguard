@@ -8,7 +8,6 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"embed"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -86,9 +85,8 @@ func Open(ctx context.Context, dbPath string) (*Store, error) {
 		return nil, fmt.Errorf("migrate: %w", err)
 	}
 
-	if err := os.Chmod(dbPath, 0o600); err != nil && !errors.Is(err, os.ErrNotExist) {
-		// Best effort — Windows may report ENOSYS for chmod, that's fine.
-	}
+	// Best-effort chmod; Windows may report ENOSYS, that's fine.
+	_ = os.Chmod(dbPath, 0o600)
 
 	s := &Store{DB: db, path: dbPath, broadcaster: NewBroadcaster()}
 	s.writer = newBatchedWriter(s)

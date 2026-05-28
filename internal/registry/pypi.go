@@ -17,14 +17,14 @@ type pypiResp struct {
 }
 
 type pypiInfo struct {
-	Name           string `json:"name"`
-	Version        string `json:"version"`
-	Summary        string `json:"summary"`
-	HomePage       string `json:"home_page"`
-	ProjectURL     string `json:"project_url"`
-	License        string `json:"license"`
-	Author         string `json:"author"`
-	AuthorEmail    string `json:"author_email"`
+	Name        string `json:"name"`
+	Version     string `json:"version"`
+	Summary     string `json:"summary"`
+	HomePage    string `json:"home_page"`
+	ProjectURL  string `json:"project_url"`
+	License     string `json:"license"`
+	Author      string `json:"author"`
+	AuthorEmail string `json:"author_email"`
 }
 
 type pypiURL struct {

@@ -11,12 +11,12 @@ import (
 )
 
 var (
-	titleStyle    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#7C5CFF"))
-	helpStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("#8B96A3"))
-	checkedStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#3DDC97"))
-	initDimStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("#5B6776"))
-	cursorStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#4AD6FF")).Bold(true)
-	headerBox     = lipgloss.NewStyle().BorderStyle(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("#232A33")).Padding(0, 1)
+	titleStyle   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#7C5CFF"))
+	helpStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("#8B96A3"))
+	checkedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#3DDC97"))
+	initDimStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#5B6776"))
+	cursorStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("#4AD6FF")).Bold(true)
+	headerBox    = lipgloss.NewStyle().BorderStyle(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("#232A33")).Padding(0, 1)
 )
 
 type initTUIModel struct {
@@ -38,9 +38,8 @@ func newInitTUI(detections []*agentdetect.Detection) initTUIModel {
 func (m initTUIModel) Init() tea.Cmd { return nil }
 
 func (m initTUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
+	if key, ok := msg.(tea.KeyMsg); ok {
+		switch key.String() {
 		case "ctrl+c", "q", "esc":
 			m.aborted = true
 			return m, tea.Quit

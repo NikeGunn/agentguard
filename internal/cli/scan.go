@@ -108,7 +108,7 @@ type scanReport struct {
 }
 
 type scanResult struct {
-	Payload  scanPayload
+	Payload   scanPayload
 	Reflected bool
 	Notes     string
 }
