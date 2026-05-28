@@ -62,8 +62,13 @@ func RunStdio(ctx context.Context, cfg StdioConfig) (int, error) {
 	now := store.NowMS()
 
 	// Register/upsert the server row.
-	serverID := store.NewID()
+	// Derive a deterministic id from canonical_uri so subsequent wrap
+	// invocations against the same server reuse the row that ON CONFLICT
+	// keeps. Without this, the proxy generates a fresh ULID every spawn
+	// but the upsert keeps the original row's id, breaking the FK from
+	// tool_calls.server_id.
 	canonical := "stdio:" + cfg.UpstreamName + ":" + cfg.Command[0]
+	serverID := store.DeterministicID("server:" + canonical)
 	cfg.Store.Writer().Submit(store.Event{Kind: store.EventMCPServerUpsert, Server: &store.MCPServer{
 		ID: serverID, Name: cfg.UpstreamName, CanonicalURI: canonical,
 		Transport: "stdio", UpstreamCommand: stringPtr(joinArgs(cfg.Command)),

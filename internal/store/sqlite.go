@@ -6,6 +6,7 @@ package store
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"database/sql"
 	"embed"
 	"fmt"
@@ -129,6 +130,23 @@ func (s *Store) Writer() *batchedWriter { return s.writer }
 // NewID returns a fresh ULID string.
 func NewID() string {
 	return ulid.MustNew(ulid.Timestamp(time.Now()), rand.Reader).String()
+}
+
+// DeterministicID returns a stable ULID-shaped string derived from a key.
+// The first 6 bytes encode a fixed timestamp (epoch zero) and the last
+// 10 bytes encode a SHA-256-derived hash of the key. Useful for rows
+// that must remain stable across process restarts (e.g. server_id
+// keyed by canonical_uri).
+func DeterministicID(key string) string {
+	sum := sha256.Sum256([]byte(key))
+	var entropy [10]byte
+	copy(entropy[:], sum[:10])
+	// timestamp = 0 so the ULID string starts with '00000000000000'
+	id := ulid.ULID{}
+	if err := id.SetEntropy(entropy[:]); err != nil {
+		panic(err)
+	}
+	return id.String()
 }
 
 // NowMS returns the current unix epoch in milliseconds, matching the column
