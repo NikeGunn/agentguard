@@ -226,7 +226,20 @@ func (w *batchedWriter) flush(batch []Event) error {
 			return fmt.Errorf("event %d: %w", i, err)
 		}
 	}
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	// Post-commit: fan out tool_call inserts to dashboard subscribers. We
+	// only broadcast after a successful commit so subscribers never see
+	// an event that wasn't durably written.
+	if w.s.broadcaster != nil {
+		for i := range batch {
+			if batch[i].Kind == EventToolCall && batch[i].ToolCall != nil {
+				w.s.broadcaster.Publish(*batch[i].ToolCall)
+			}
+		}
+	}
+	return nil
 }
 
 func writeOne(ctx context.Context, tx *sql.Tx, e *Event) error {

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AgentGuard</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand">
+    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+      <path fill="currentColor" d="M12 2 4 5v6c0 5 3.4 9.5 8 11 4.6-1.5 8-6 8-11V5l-8-3Zm0 6.5 4 1.5v3c0 3-1.7 5.6-4 6.7-2.3-1.1-4-3.7-4-6.7v-3l4-1.5Z"/>
+    </svg>
+    <span>AgentGuard</span>
+  </div>
+  <nav>
+    <a class="nav-link active" data-route="overview" href="#overview">Overview</a>
+    <a class="nav-link" data-route="calls"   href="#calls">Tool calls</a>
+    <a class="nav-link" data-route="tools"   href="#tools">Top tools</a>
+    <a class="nav-link" data-route="servers" href="#servers">Servers</a>
+  </nav>
+  <div class="status">
+    <span class="dot" id="livedot"></span>
+    <span id="livestate">connecting…</span>
+  </div>
+  <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">◐</button>
+</aside>
+
+<main>
+  <header class="topbar">
+    <h1 id="pageTitle">Overview</h1>
+    <div class="window-select">
+      <label>Window
+        <select id="window">
+          <option value="15m">15m</option>
+          <option value="1h" selected>1h</option>
+          <option value="6h">6h</option>
+          <option value="24h">24h</option>
+          <option value="168h">7d</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <section id="page-overview" class="page active">
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Calls</div><div class="kpi-value" id="kpiCalls">—</div></div>
+      <div class="kpi"><div class="kpi-label">Blocked</div><div class="kpi-value danger" id="kpiBlocked">—</div></div>
+      <div class="kpi"><div class="kpi-label">Flagged</div><div class="kpi-value warn" id="kpiFlagged">—</div></div>
+      <div class="kpi"><div class="kpi-label">Transformed</div><div class="kpi-value" id="kpiTransform">—</div></div>
+      <div class="kpi"><div class="kpi-label">Block rate</div><div class="kpi-value" id="kpiRate">—</div></div>
+      <div class="kpi"><div class="kpi-label">Active agents</div><div class="kpi-value" id="kpiAgents">—</div></div>
+      <div class="kpi"><div class="kpi-label">Known servers</div><div class="kpi-value" id="kpiServers">—</div></div>
+      <div class="kpi"><div class="kpi-label">Open sessions</div><div class="kpi-value" id="kpiSessions">—</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>Calls per minute</h2><span class="muted" id="sparkSummary"></span></div>
+      <svg id="spark" viewBox="0 0 800 200" preserveAspectRatio="none"></svg>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>Recent activity</h2><a class="muted" href="#calls">view all &rarr;</a></div>
+      <table class="data-table" id="recentTable">
+        <thead><tr><th>Time</th><th>Server</th><th>Tool</th><th>Dir</th><th>Verdict</th><th>Reason</th><th>Latency</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="page-calls" class="page">
+    <div class="card">
+      <div class="card-header">
+        <h2>Tool calls</h2>
+        <div class="filters">
+          <select id="verdictFilter">
+            <option value="">All verdicts</option>
+            <option value="allow">allow</option>
+            <option value="block">block</option>
+            <option value="flag">flag</option>
+            <option value="transform">transform</option>
+          </select>
+          <label class="autoscroll">
+            <input type="checkbox" id="autoscroll" checked>
+            Live
+          </label>
+        </div>
+      </div>
+      <table class="data-table" id="callsTable">
+        <thead><tr><th>Time</th><th>Server</th><th>Tool</th><th>Dir</th><th>Verdict</th><th>Reason</th><th>Latency</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="page-tools" class="page">
+    <div class="card">
+      <div class="card-header"><h2>Top tools</h2></div>
+      <table class="data-table" id="toolsTable">
+        <thead><tr><th>#</th><th>Server</th><th>Tool</th><th>Calls</th><th>Blocks</th><th>Avg latency</th><th>Share</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="page-servers" class="page">
+    <div class="card">
+      <div class="card-header"><h2>MCP servers</h2></div>
+      <table class="data-table" id="serversTable">
+        <thead><tr><th>Name</th><th>Transport</th><th>Trust</th><th>Total</th><th>Blocks</th><th>First seen</th><th>Last seen</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>

@@ -33,6 +33,7 @@ import (
 func newInitCmd() *cobra.Command {
 	var (
 		nonInteractive bool
+		interactive    bool
 		dryRun         bool
 		skipServers    []string
 		homeOverride   string
@@ -100,7 +101,21 @@ machine, back up their MCP configs, and rewrite each entry to invoke
 					d.DisplayName, d.ConfigPath, len(d.Servers), pluralS(len(d.Servers)))
 			}
 
-			if !nonInteractive {
+			if interactive {
+				kept, aborted, err := runInitTUI(detections)
+				if err != nil {
+					return fmt.Errorf("tui: %w", err)
+				}
+				if aborted {
+					fmt.Fprintln(out, "  Aborted; no changes made.")
+					return nil
+				}
+				if len(kept) == 0 {
+					fmt.Fprintln(out, "  Nothing selected; no changes made.")
+					return nil
+				}
+				detections = kept
+			} else if !nonInteractive {
 				if !confirm(out, cmd.InOrStdin(), "Patch all of these now?") {
 					fmt.Fprintln(out, "  Aborted; no changes made.")
 					return nil
@@ -166,7 +181,9 @@ machine, back up their MCP configs, and rewrite each entry to invoke
 		},
 	}
 	cmd.Flags().BoolVar(&nonInteractive, "non-interactive", true,
-		"accept all detected agents without prompting (default true in M3; M4 adds the TUI checklist)")
+		"accept all detected agents without prompting (default true; pair with --interactive to opt into the TUI)")
+	cmd.Flags().BoolVar(&interactive, "interactive", false,
+		"show a Bubble Tea checklist so you can pick which agents to patch")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "report what would change without writing anything")
 	cmd.Flags().StringSliceVar(&skipServers, "skip-server", nil,
 		"comma-separated MCP server names to leave untouched")

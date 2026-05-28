@@ -40,11 +40,12 @@ var Pragmas = []string{
 
 // Store wraps the sql.DB plus the batched writer.
 type Store struct {
-	DB        *sql.DB
-	path      string
-	writer    *batchedWriter
-	closeOnce sync.Once
-	closeErr  error
+	DB          *sql.DB
+	path        string
+	writer      *batchedWriter
+	broadcaster *Broadcaster
+	closeOnce   sync.Once
+	closeErr    error
 }
 
 // DefaultPath returns the canonical on-disk location:
@@ -89,11 +90,16 @@ func Open(ctx context.Context, dbPath string) (*Store, error) {
 		// Best effort — Windows may report ENOSYS for chmod, that's fine.
 	}
 
-	s := &Store{DB: db, path: dbPath}
+	s := &Store{DB: db, path: dbPath, broadcaster: NewBroadcaster()}
 	s.writer = newBatchedWriter(s)
 	s.writer.start()
 	return s, nil
 }
+
+// Broadcaster returns the per-store SSE broadcaster. The batched writer
+// publishes every successfully-flushed ToolCall here; the dashboard
+// subscribes per HTTP connection.
+func (s *Store) Broadcaster() *Broadcaster { return s.broadcaster }
 
 func applyMigrations(db *sql.DB) error {
 	goose.SetBaseFS(embeddedMigrations)

@@ -5,6 +5,76 @@ All notable changes to AgentGuard are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — Milestone 4
+
+### Added
+- **`agentguard dashboard`** (`internal/cli/dashboard.go`): launches a
+  localhost-only single-page web UI at `http://127.0.0.1:7878`. Live tool
+  calls, top tools, server inventory, per-minute timeseries. Opens the
+  browser automatically (suppress with `--no-browser`). Bound to 127.0.0.1
+  only — never publicly reachable.
+- **Dashboard server** (`internal/dashboard/{server,api,sse,embed}.go`):
+  chi-based HTTP server with `/api/overview`, `/api/timeseries`,
+  `/api/top-tools`, `/api/servers`, `/api/calls`, `/api/stats`, and an SSE
+  stream at `/events` that pushes a `hello` snapshot + live `call` events
+  + 25-second heartbeats. All static assets are embedded via `embed.FS`.
+- **Analytics queries** (`internal/store/analytics.go`): `Overview`,
+  `CallsByMinute`, `TopTools`, `Servers`, `RecentCalls`. Every query is
+  bounded by a `limit` and a `window` so no API call ever scans more than
+  a few hundred rows.
+- **SSE broadcaster** (`internal/store/broadcast.go`): non-blocking
+  pub/sub that the batched writer publishes to after each successful
+  commit. Subscribers get a buffered channel and `Unsubscribe` cleanly on
+  client disconnect.
+- **Single-file dashboard UI** (`internal/dashboard/assets/`): hand-written
+  HTML + vanilla JS + CSS, dark and light themes, KPI tiles with gradient
+  accents, SVG sparkline with area fill, live-flash row animations,
+  filterable calls table, top-tools usage bars, MCP-server inventory page.
+  No build step; total weight under 25 KB.
+- **Interactive init checklist** (`internal/cli/init_tui.go`): Bubble Tea
+  TUI shown when `agentguard init --interactive` is passed. Per-agent
+  checkboxes, ↑/↓/space/a/n/enter keys, abort with esc.
+- **Registry package** (`internal/registry/`): metadata fetchers for npm
+  (`registry.npmjs.org` + monthly downloads), PyPI, and GitHub
+  (`api.github.com/repos`). Shared `*http.Client`, polite User-Agent,
+  context-bound. `TrustScore()` aggregates a 0..100 score from age,
+  popularity, license, repo presence, author, and activity recency.
+- **Stage 2 attestation** (`internal/pipeline/attestation.go`): inspects
+  inbound `tools/list` responses, computes a deterministic SHA-256 over
+  the sorted (name, description, inputSchema) triples, and compares
+  against the last-seen hash from `server_attestations`. A mismatch
+  raises `VerdictFlag` with `{old_hash, new_hash}` — the rug-pull alarm.
+  Store-side persistence in `internal/store/attestation.go`.
+- **OTLP exporter** (`internal/otel/exporter.go`): hand-rolled OTLP/HTTP
+  JSON span exporter — one span per tool call, attributes for
+  `mcp.server`, `mcp.tool`, `mcp.direction`, `verdict`, `verdict.reason`.
+  Empty endpoint = no-op, so off by default. Avoids pulling the multi-MB
+  `go.opentelemetry.io` tree.
+- **Tests**: dashboard route smoke tests via `httptest` covering all
+  `/api/*` endpoints and `/` static handler. Attestation tests for first-
+  seen, drift-flag, reorder-stable hashing, and outbound short-circuit.
+  Registry trust-score tests for empty/high/low signal. OTLP exporter
+  tests with an `httptest.Server` collector.
+
+### Changed
+- `cmd/agentguard` root now registers `dashboard` alongside the M1-M3 set.
+- `internal/store/sqlite.go` exposes `Broadcaster()` so the proxy + tests
+  can fan out tool-call events.
+- `internal/store/batched_writer.go` publishes `ToolCall` events to the
+  broadcaster after each successful `tx.Commit()`.
+
+### Dependencies
+- Added `github.com/go-chi/chi/v5` for HTTP routing.
+
+### Deliberately deferred
+- SvelteKit/Bun dashboard rebuild — current vanilla single-page UI hits
+  the "rich visual design" bar and stays buildless. SvelteKit replaces
+  these files in a later milestone without changing the API surface.
+- DuckDB analytics — full DuckDB pulls CGO, conflicting with the pure-Go
+  single-binary promise. All queries run against SQLite for now.
+- ML stage — wired as a `VerdictSkip` stub in `internal/pipeline/ml.go`,
+  full implementation lands in M5.
+
 ## [Unreleased] — Milestone 3
 
 ### Added
