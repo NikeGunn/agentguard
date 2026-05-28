@@ -1,4 +1,4 @@
-﻿name: ci
+name: ci
 
 on:
   push:
@@ -41,7 +41,7 @@ jobs:
       - name: Test (race + coverage)
         run: go test -race -coverprofile=coverage.out -covermode=atomic -timeout 120s ./...
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: coverage.out
@@ -88,7 +88,7 @@ jobs:
         run: |
           mkdir -p bin
           go build -trimpath -o "bin/agentguard-${{ matrix.goos }}-${{ matrix.goarch }}" ./cmd/agentguard
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: agentguard-${{ matrix.goos }}-${{ matrix.goarch }}
           path: bin/agentguard-${{ matrix.goos }}-${{ matrix.goarch }}*

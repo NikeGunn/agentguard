@@ -24,7 +24,7 @@ jobs:
         run: go test -bench=. -benchmem -run='^$' -timeout 10m ./bench/... | tee bench.txt
       - name: P99 gate
         run: go test -run TestCheapPathP99 -timeout 5m ./bench/...
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: bench-results
           path: bench.txt
