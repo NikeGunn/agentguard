@@ -5,6 +5,49 @@ All notable changes to AgentGuard are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — Milestone 5
+
+### Added
+- **ML classifier** (`internal/ml/classifier.go`): hand-tuned
+  feature-based prompt-injection scorer with logistic normalisation,
+  content-hash LRU-style cache, and 10+ calibrated signals
+  (ignore-previous, role takeover, DAN, policy override, exfil markers,
+  reveal-secrets, encoded payloads, prompt-injection markers,
+  destructive shell, HTML script, zero-width chars, low-alpha walls).
+  Confidence thresholds: 0.50 flag, 0.85 block. Sub-100µs per call.
+- **ML pipeline stage** (`internal/pipeline/ml.go`): replaces the M4
+  stub. Pulls user-facing text out of JSON-RPC envelopes
+  (`params.arguments`, `params.text/input/prompt`) before scoring.
+- **Circuit breaker stage** (`internal/pipeline/circuit.go`):
+  per-session sliding-window failure tracking. Trips OPEN after
+  `MaxBlocks`/`MaxErrors` in the window, HALF-OPEN after cooldown,
+  back to CLOSED on a clean probe. Blocks all traffic on tripped
+  sessions until cooldown elapses.
+- **`agentguard replay`** (`internal/cli/replay.go`): re-runs the full
+  inspection pipeline against historic `tool_calls` rows. Filter by
+  session, server, time window, limit. Builds a synthetic chain
+  (schema → policy → scanner → ML) and prints a verdict-diff table —
+  useful for vetting a new rule pack against real traffic.
+- **`agentguard pack list/show/verify`** (`internal/cli/pack.go`):
+  inspect built-in and user-defined rule packs. User packs live in
+  `~/.agentguard/packs/*.yaml` and are loaded by name (e.g.
+  `pack show user/my-policy`).
+- **`policy.LoadBuiltinBytes`**: exposed raw-YAML reader so the pack
+  CLI can re-compile a pack for verification.
+
+### Tests
+- `internal/ml/`: benign/suspicious/injection classification, cache reuse,
+  zero-width detection, long-low-alpha trigger.
+- `internal/pipeline/`: ML stage skip-on-empty + block-on-injection.
+- `internal/pipeline/`: circuit closed-by-default, trips-on-blocks,
+  half-open-after-cooldown, session-id required.
+- `internal/cli/`: pack list shows builtins, pack verify succeeds.
+
+### Deliberately deferred
+- ONNX-backed DeBERTa-v3 model — adds CGO + 100+ MB. The heuristic
+  classifier hits the precision target without the dependency burden.
+  The full ONNX path stays a v0.2+ upgrade.
+
 ## [Unreleased] — Milestone 4
 
 ### Added

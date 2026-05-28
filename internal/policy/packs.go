@@ -14,11 +14,20 @@ var builtinPacks embed.FS
 // LoadBuiltin returns the compiled rules from one of the binary-embedded
 // builtin packs. Recognised names today: "default", "strict".
 func LoadBuiltin(name string) (*PackFile, []Rule, error) {
-	data, err := builtinPacks.ReadFile(path.Join("builtin", name+".yaml"))
+	data, err := LoadBuiltinBytes(name)
 	if err != nil {
-		return nil, nil, fmt.Errorf("load builtin pack %q: %w", name, err)
+		return nil, nil, err
 	}
 	return CompilePack(data)
+}
+
+// LoadBuiltinBytes returns the raw YAML bytes for a builtin pack.
+func LoadBuiltinBytes(name string) ([]byte, error) {
+	data, err := builtinPacks.ReadFile(path.Join("builtin", name+".yaml"))
+	if err != nil {
+		return nil, fmt.Errorf("load builtin pack %q: %w", name, err)
+	}
+	return data, nil
 }
 
 // ListBuiltin returns the slugs of all packs embedded in the binary, sorted.
