@@ -1,10 +1,42 @@
-// AgentGuard landing-page enhancements:
-//  1. smart OS-detecting install widget (hero)
-//  2. click-to-copy on <pre class="copy"> + the install widget
-//  3. scroll-spy nav highlighting
-//  4. tab switcher for per-agent setup blocks
+// AgentGuard landing page — 2026.
+//   1. smart OS-detecting install widget
+//   2. click-to-copy buttons (install widget + AI-setup prompt)
+//   3. AI-agent setup prompt generator (client-side)
+//   4. nav scroll state + scroll-spy
+//   5. marquee seamless loop (clone tracks, set duration from data-speed)
+//   6. live terminal feed (typed verdict lines)
+//   7. scroll-reveal via IntersectionObserver
+//   8. mouse-following glow + bento hover spotlight
 (function () {
   "use strict";
+
+  var prefersReduced = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- generic clipboard helper ---------- */
+  function copyText(text, onOk) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(onOk).catch(function () {});
+    } else {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); onOk(); } catch (_) {}
+      document.body.removeChild(ta);
+    }
+  }
+  function flashCopied(btn, doneLabel, restoreLabel) {
+    btn.classList.add("copied");
+    var span = btn.querySelector("span");
+    var prev = span ? span.textContent : "";
+    if (span) span.textContent = doneLabel;
+    setTimeout(function () {
+      btn.classList.remove("copied");
+      if (span) span.textContent = restoreLabel || prev;
+    }, 1600);
+  }
 
   /* ---------- 1. smart install widget ---------- */
   var widget = document.getElementById("installWidget");
@@ -15,151 +47,64 @@
     var copyBtn = document.getElementById("iwCopyBtn");
 
     function detectPlatform() {
-      // Prefer modern userAgentData when available (Chrome/Edge); fall
-      // back to userAgent string parsing.
       var uaData = navigator.userAgentData;
-      var platform = "";
-      if (uaData && uaData.platform) {
-        platform = uaData.platform.toLowerCase();
-      } else {
-        platform = (navigator.platform || "").toLowerCase();
-      }
+      var platform = uaData && uaData.platform
+        ? uaData.platform.toLowerCase()
+        : (navigator.platform || "").toLowerCase();
       var ua = (navigator.userAgent || "").toLowerCase();
 
-      if (platform.indexOf("mac") !== -1 || ua.indexOf("mac os") !== -1) {
+      if (platform.indexOf("mac") !== -1 || ua.indexOf("mac os") !== -1)
         return { key: "macos", label: "macOS" };
-      }
-      if (platform.indexOf("win") !== -1 || ua.indexOf("windows") !== -1) {
-        // Windows users usually have PowerShell available everywhere;
-        // recommend it. Git Bash is one tab away if they prefer.
+      if (platform.indexOf("win") !== -1 || ua.indexOf("windows") !== -1)
         return { key: "windows-ps", label: "Windows (PowerShell)" };
-      }
       if (platform.indexOf("linux") !== -1 || ua.indexOf("linux") !== -1 ||
-          ua.indexOf("x11") !== -1 || ua.indexOf("cros") !== -1) {
+          ua.indexOf("x11") !== -1 || ua.indexOf("cros") !== -1)
         return { key: "linux", label: "Linux" };
-      }
-      // Unknown — default to the most general path.
       return { key: "linux", label: "Linux / Unix" };
     }
 
     function activate(key) {
-      tabs.forEach(function (t) {
-        t.classList.toggle("active", t.dataset.platform === key);
-      });
-      panes.forEach(function (p) {
-        p.classList.toggle("active", p.dataset.pane === key);
-      });
+      tabs.forEach(function (t) { t.classList.toggle("active", t.dataset.platform === key); });
+      panes.forEach(function (p) { p.classList.toggle("active", p.dataset.pane === key); });
     }
 
     var detected = detectPlatform();
     if (detectedLabel) detectedLabel.textContent = detected.label;
-    // Mark the detected tab with a sparkle pseudo-element.
     tabs.forEach(function (t) {
       if (t.dataset.platform === detected.key) t.classList.add("recommended");
     });
     activate(detected.key);
 
-    // Tab clicks
     tabs.forEach(function (tab) {
-      tab.addEventListener("click", function () {
-        activate(tab.dataset.platform);
-      });
+      tab.addEventListener("click", function () { activate(tab.dataset.platform); });
     });
 
-    // Copy button — copies the currently-active pane's command
     if (copyBtn) {
       copyBtn.addEventListener("click", function () {
         var activePane = widget.querySelector(".iw-pane.active");
         if (!activePane) return;
         var codeEl = activePane.querySelector(".iw-cmd");
         if (!codeEl) return;
-        var text = codeEl.innerText.trim();
-        var ok = function () {
-          copyBtn.classList.add("copied");
-          var span = copyBtn.querySelector("span");
-          var prev = span ? span.textContent : "";
-          if (span) span.textContent = "Copied!";
-          setTimeout(function () {
-            copyBtn.classList.remove("copied");
-            if (span) span.textContent = prev || "Copy";
-          }, 1600);
-        };
-        if (navigator.clipboard && window.isSecureContext) {
-          navigator.clipboard.writeText(text).then(ok).catch(function () {});
-        } else {
-          var ta = document.createElement("textarea");
-          ta.value = text;
-          ta.style.position = "fixed"; ta.style.opacity = "0";
-          document.body.appendChild(ta);
-          ta.select();
-          try { document.execCommand("copy"); ok(); } catch (_) {}
-          document.body.removeChild(ta);
-        }
+        copyText(codeEl.innerText.trim(), function () {
+          flashCopied(copyBtn, "Copied!", "Copy");
+        });
       });
     }
   }
 
-  /* ---------- 2. click-to-copy on every <pre class="copy"> ---------- */
+  /* ---------- 2. click-to-copy on <pre class="copy"> ---------- */
   document.querySelectorAll("pre.copy").forEach(function (el) {
     el.addEventListener("click", function () {
-      var text = el.innerText.trim();
-      var ok = function () {
+      copyText(el.innerText.trim(), function () {
         el.classList.add("copied");
         setTimeout(function () { el.classList.remove("copied"); }, 1400);
-      };
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(ok).catch(function () {});
-      } else {
-        var ta = document.createElement("textarea");
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        try { document.execCommand("copy"); ok(); } catch (_) {}
-        document.body.removeChild(ta);
-      }
-    });
-  });
-
-  /* ---------- 3. scroll-spy ---------- */
-  var links = Array.prototype.slice.call(document.querySelectorAll(".nav nav a[href^='#']"));
-  var sections = links.map(function (a) {
-    var id = a.getAttribute("href").slice(1);
-    return { link: a, el: document.getElementById(id) };
-  }).filter(function (x) { return x.el; });
-
-  function spy() {
-    var y = window.scrollY + 90;
-    var cur = null;
-    for (var i = 0; i < sections.length; i++) {
-      if (sections[i].el.offsetTop <= y) cur = sections[i];
-    }
-    links.forEach(function (l) { l.classList.remove("active"); });
-    if (cur) cur.link.classList.add("active");
-  }
-  window.addEventListener("scroll", spy, { passive: true });
-  spy();
-
-  /* ---------- 4. tab switcher for [data-tabs] blocks ---------- */
-  document.querySelectorAll("[data-tabs]").forEach(function (root) {
-    var tabs  = root.querySelectorAll(".tab");
-    var panes = root.querySelectorAll(".tab-pane");
-    tabs.forEach(function (tab, i) {
-      tab.addEventListener("click", function () {
-        tabs.forEach(function (t) { t.classList.remove("active"); });
-        panes.forEach(function (p) { p.classList.remove("active"); });
-        tab.classList.add("active");
-        if (panes[i]) panes[i].classList.add("active");
       });
     });
   });
 
-  /* ---------- 5. AI-agent setup prompt generator ---------- */
-  // Pick an agent, get a tailored, copy-ready prompt the user pastes into that
-  // agent's chat. The agent then sets AgentGuard up unattended. 100% client-side.
+  /* ---------- 3. AI-agent setup prompt generator ---------- */
   var pg = document.getElementById("promptGen");
   if (pg) {
-    // Per-agent specifics: human name, the config file the agent should expect
-    // AgentGuard to patch, and whether a shipped Skill is available.
     var AGENTS = {
       claude:   { name: "Claude Code",
                   cfg: "~/.claude.json (or claude_desktop_config.json)",
@@ -224,7 +169,6 @@
       if (pgName) pgName.textContent = AGENTS[key].name;
       if (pgPrompt) pgPrompt.textContent = buildPrompt(key);
     }
-
     pgAgents.forEach(function (b) {
       b.addEventListener("click", function () { selectAgent(b.dataset.agent); });
     });
@@ -232,29 +176,143 @@
 
     if (pgCopy) {
       pgCopy.addEventListener("click", function () {
-        var text = pgPrompt ? pgPrompt.textContent : "";
-        var ok = function () {
-          pgCopy.classList.add("copied");
-          var span = pgCopy.querySelector("span");
-          var prev = span ? span.textContent : "";
-          if (span) span.textContent = "Copied!";
-          setTimeout(function () {
-            pgCopy.classList.remove("copied");
-            if (span) span.textContent = prev || "Copy prompt";
-          }, 1600);
-        };
-        if (navigator.clipboard && window.isSecureContext) {
-          navigator.clipboard.writeText(text).then(ok).catch(function () {});
-        } else {
-          var ta = document.createElement("textarea");
-          ta.value = text;
-          ta.style.position = "fixed"; ta.style.opacity = "0";
-          document.body.appendChild(ta);
-          ta.select();
-          try { document.execCommand("copy"); ok(); } catch (_) {}
-          document.body.removeChild(ta);
-        }
+        copyText(pgPrompt ? pgPrompt.textContent : "", function () {
+          flashCopied(pgCopy, "Copied!", "Copy prompt");
+        });
       });
     }
   }
+
+  /* ---------- 4. nav scroll state + scroll-spy ---------- */
+  var nav = document.getElementById("nav");
+  var links = Array.prototype.slice.call(document.querySelectorAll(".nav nav a[href^='#']"));
+  var sections = links.map(function (a) {
+    return { link: a, el: document.getElementById(a.getAttribute("href").slice(1)) };
+  }).filter(function (x) { return x.el; });
+
+  function onScroll() {
+    if (nav) nav.classList.toggle("scrolled", window.scrollY > 24);
+    var y = window.scrollY + 110, cur = null;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.offsetTop <= y) cur = sections[i];
+    }
+    links.forEach(function (l) { l.classList.remove("active"); });
+    if (cur) cur.link.classList.add("active");
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  /* ---------- 5. marquee seamless loop ---------- */
+  document.querySelectorAll(".marquee").forEach(function (m) {
+    var track = m.querySelector(".marquee-track");
+    if (!track) return;
+    // duplicate content so the -50% keyframe lands on an identical frame
+    track.innerHTML += track.innerHTML;
+    var speed = parseFloat(m.getAttribute("data-speed")) || 40;
+    track.style.setProperty("--dur", speed + "s");
+  });
+
+  /* ---------- 6. live terminal feed ---------- */
+  var termFeed = document.getElementById("termFeed");
+  if (termFeed && !prefersReduced) {
+    var EVENTS = [
+      ["ALLOW", "github.read_issue",        "132ms"],
+      ["BLOCK", "bash.rm_rf",               "policy.violation"],
+      ["WARN",  "slack.post_message",       "sensitive.channel"],
+      ["ALLOW", "filesystem.read",          "12ms"],
+      ["BLOCK", "github.comment",           "indirect.prompt.injection"],
+      ["ALLOW", "notion.search",            "88ms"],
+      ["WARN",  "fetch.url",                "secret.in.args"],
+      ["BLOCK", "tools/list",               "schema.rug.pull"],
+      ["ALLOW", "memory.get",               "4ms"],
+      ["BLOCK", "stripe.create_charge",     "spend.cap.exceeded"]
+    ];
+    var MAX = 6, idx = 0;
+
+    function addLine() {
+      var e = EVENTS[idx % EVENTS.length];
+      idx++;
+      var row = document.createElement("div");
+      row.className = "term-line";
+      var verb = document.createElement("span");
+      verb.className = "verb " + e[0];
+      verb.textContent = e[0];
+      var tool = document.createElement("span");
+      tool.className = "tool";
+      tool.textContent = e[1];
+      var meta = document.createElement("span");
+      meta.className = "meta";
+      meta.textContent = e[2];
+      row.appendChild(verb); row.appendChild(tool); row.appendChild(meta);
+      termFeed.appendChild(row);
+      while (termFeed.children.length > MAX) termFeed.removeChild(termFeed.firstChild);
+    }
+
+    // only run when the terminal is on screen — saves cycles + battery
+    var running = false, timer = null;
+    function tick() {
+      addLine();
+      timer = setTimeout(tick, 900 + Math.random() * 700);
+    }
+    var termSection = document.getElementById("terminal");
+    if ("IntersectionObserver" in window && termSection) {
+      new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting && !running) { running = true; tick(); }
+          else if (!en.isIntersecting && running) { running = false; clearTimeout(timer); }
+        });
+      }, { threshold: 0.2 }).observe(termSection);
+    } else {
+      // seed a few static lines if no observer
+      for (var k = 0; k < MAX; k++) addLine();
+    }
+  } else if (termFeed) {
+    // reduced motion: just paint a static snapshot
+    [["ALLOW","github.read_issue","132ms"],["BLOCK","bash.rm_rf","policy.violation"],
+     ["WARN","slack.post_message","sensitive.channel"],["ALLOW","filesystem.read","12ms"],
+     ["BLOCK","github.comment","indirect.prompt.injection"]].forEach(function (e) {
+      var row = document.createElement("div");
+      row.className = "term-line"; row.style.animation = "none"; row.style.opacity = "1"; row.style.transform = "none";
+      row.innerHTML = '<span class="verb ' + e[0] + '">' + e[0] + '</span>' +
+                      '<span class="tool">' + e[1] + '</span>' +
+                      '<span class="meta">' + e[2] + '</span>';
+      termFeed.appendChild(row);
+    });
+  }
+
+  /* ---------- 7. scroll-reveal ---------- */
+  var revealEls = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window && !prefersReduced) {
+    var ro = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add("in"); ro.unobserve(en.target); }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+    revealEls.forEach(function (el) { ro.observe(el); });
+  } else {
+    revealEls.forEach(function (el) { el.classList.add("in"); });
+  }
+
+  /* ---------- 8. mouse glow + bento spotlight ---------- */
+  var glow = document.getElementById("mouseGlow");
+  if (glow && !prefersReduced && window.matchMedia("(pointer: fine)").matches) {
+    var gx = 0, gy = 0, raf = null;
+    window.addEventListener("mousemove", function (e) {
+      gx = e.clientX; gy = e.clientY;
+      if (!raf) raf = requestAnimationFrame(function () {
+        glow.style.transform = "translate(" + (gx - 300) + "px," + (gy - 300) + "px)";
+        raf = null;
+      });
+    }, { passive: true });
+  } else if (glow) {
+    glow.style.display = "none";
+  }
+
+  document.querySelectorAll(".bento-card").forEach(function (card) {
+    card.addEventListener("mousemove", function (e) {
+      var r = card.getBoundingClientRect();
+      card.style.setProperty("--mx", (e.clientX - r.left) + "px");
+      card.style.setProperty("--my", (e.clientY - r.top) + "px");
+    });
+  });
 })();
