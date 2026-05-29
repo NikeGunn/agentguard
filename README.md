@@ -24,10 +24,34 @@ agentguard dashboard   # opens http://127.0.0.1:7878
 
 That's it. The next tool call your agent makes is now inspected.
 
-![demo](demo/agentguard.gif)
+### See it
 
-> Demo not rendered yet? Run `vhs demo/agentguard.tape` from the repo
-> root — see [`demo/README.md`](demo/README.md) for the one-time setup.
+The local web dashboard — live tool-call feed, per-server trust scores,
+call-detail waterfall, command palette, dark/light:
+
+![dashboard](demo/dashboard.gif)
+
+<table>
+<tr>
+<td width="50%">
+
+`agentguard tail` — live TUI feed of every call
+
+![tail](demo/tail.gif)
+
+</td>
+<td width="50%">
+
+`agentguard doctor` — Homebrew-style health check
+
+![doctor](demo/doctor.gif)
+
+</td>
+</tr>
+</table>
+
+> Want to regenerate or add the `scan` / `install` / agent-onboarding GIFs?
+> See [`demo/README.md`](demo/README.md) for the one-command render workflow.
 
 ## Why
 

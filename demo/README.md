@@ -1,51 +1,81 @@
 # Demo recordings
 
-This folder contains the source scripts for the demo GIFs used in the
-README and the landing page.
+Source for the GIFs in the root README and the landing page. Committed GIFs
+live in this folder (`demo/*.gif`); everything under `demo/out/` is a throwaway
+render workspace and is git-ignored.
 
-## `agentguard.tape` → `agentguard.gif`
+| GIF                | Source                         | What it shows                                   |
+|--------------------|--------------------------------|-------------------------------------------------|
+| `dashboard.gif`    | `playwright/record-dashboard.mjs` | The interactive web dashboard — overview, live feed, call detail, servers, command palette, theme toggle. |
+| `doctor.gif`       | `tapes/doctor.tape`            | `agentguard doctor` health check.               |
+| `tail.gif`         | `tapes/tail.tape`             | `agentguard tail` live TUI feed.                |
+| `agentguard.gif`   | `agentguard.tape`             | Original terminal hero (install → version → help → doctor). |
+| `scan.gif`*        | `tapes/scan.tape`             | `agentguard scan` firing the injection corpus.  |
+| `install.gif`*     | `tapes/install.tape`          | One-line install + the agent-handoff story.     |
+| `onboarding.gif`*  | `tapes/onboarding.tape`       | Paste the landing-page prompt → the agent sets everything up. |
 
-The main hero demo. Reproducible via [vhs](https://github.com/charmbracelet/vhs).
+\* Render on demand with the script below.
 
-```bash
-# 1. Install vhs (one-time)
-brew install vhs                 # macOS
-scoop install vhs                # Windows (scoop)
-winget install charmbracelet.vhs # Windows (winget)
-# Linux: see https://github.com/charmbracelet/vhs#installation
+## Terminal GIFs (vhs)
 
-# 2. Build the binary in the repo root
-go build -o agentguard ./cmd/agentguard
-
-# 3. Generate the GIF
-vhs demo/agentguard.tape
-```
-
-Output lands at `demo/agentguard.gif` — commit it so it shows in the
-README and on the landing page.
-
-## Dashboard hero shot (OBS)
-
-The terminal demo above doesn't show the web dashboard. For that, run:
+The `.tape` files render with [vhs](https://github.com/charmbracelet/vhs).
 
 ```bash
-agentguard dashboard
+# One-time tooling
+winget install charmbracelet.vhs Gyan.FFmpeg tsl0922.ttyd   # Windows
+brew install vhs ffmpeg                                       # macOS (ttyd via brew too)
+
+# Build the demo binaries
+go build -o demo/agentguard.exe ./cmd/agentguard
+go build -o demo/mock.exe        ./e2e/mock_mcp_server
 ```
 
-Then record `http://127.0.0.1:7878` in **OBS Studio** at 1920×1080,
-30 fps, ~15 seconds:
+### Windows: use `render-tapes.ps1`, not bare `vhs`
 
-1. Open the dashboard.
-2. In another terminal, trigger a few tool calls through any wrapped
-   agent (or run the e2e mock to generate traffic:
-   `go run ./e2e/mock_mcp_server | agentguard wrap --upstream-name demo -- cat`).
-3. Watch the rows flash in. Capture the live update animation.
-4. Save as `demo/dashboard.mp4`, then convert:
-   ```
-   ffmpeg -i demo/dashboard.mp4 -vf "fps=15,scale=900:-1:flags=lanczos" \
-          -loop 0 demo/dashboard.gif
-   ```
+On Windows, vhs drives headless Chrome via the `rod` library and **leaks that
+Chrome process on teardown** — it writes the `.gif` but then hangs instead of
+exiting. Left unmanaged, the leaked Chromes pile up (all sharing
+`%TEMP%\rod\user-data`) until new renders hang at Chrome *startup*. The symptom
+is a render that freezes right after the `Set …` directives echo.
 
-Drop both GIFs into the README under the Hero section and into the
-landing page hero terminal block (replacing the typed-out `<pre>` once
-the real GIF is available).
+`render-tapes.ps1` works around this: it waits for the output GIF to finish
+writing (not for vhs to exit), kills vhs, and reaps the orphaned rod Chrome —
+and does so before/after every render. It never touches your real browser
+(those have no `%TEMP%\rod` profile).
+
+```powershell
+cd demo
+# Seed the tail demo DB once (seeding inside a tape hangs ttyd on Windows):
+.\agentguard.exe seed-demo --db .\out\tail-demo.db --count 120
+pwsh -File render-tapes.ps1 doctor tail scan install onboarding
+# or render everything in tapes/:
+pwsh -File render-tapes.ps1
+```
+
+On macOS/Linux the leak doesn't occur — `vhs tapes/doctor.tape` works directly.
+
+## Dashboard GIF (Playwright)
+
+`dashboard.gif` is recorded by driving the real dashboard with Playwright, so
+every pixel is the actual UI. It also saves the raw `.webm` (used for the
+LinkedIn launch clip).
+
+```powershell
+cd demo
+npm --prefix playwright install
+npx --prefix playwright playwright install chromium
+
+# Seed data + run the live feed + dashboard, then record:
+.\agentguard.exe seed-demo --db .\out\dash.db --count 140
+Start-Process .\agentguard.exe -ArgumentList "dashboard --db out/dash.db --no-browser"
+Start-Process .\agentguard.exe -ArgumentList "seed-demo --db out/dash.db --live"
+node playwright\record-dashboard.mjs   # -> out/video/*.webm + demo/dashboard.gif source
+```
+
+The recorder writes the raw video to `demo/out/video/` and copies it to your
+Desktop. Convert to GIF with the two-pass palette method:
+
+```powershell
+ffmpeg -i out\video\<clip>.webm -vf "setpts=PTS/1.8,fps=13,scale=1000:-1:flags=lanczos,palettegen=stats_mode=diff" out\palette.png
+ffmpeg -i out\video\<clip>.webm -i out\palette.png -lavfi "setpts=PTS/1.8,fps=13,scale=1000:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=3:diff_mode=rectangle" dashboard.gif
+```

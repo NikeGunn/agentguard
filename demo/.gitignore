@@ -1,0 +1,11 @@
+# Render working dir: throwaway DBs, logs, intermediate GIFs, captured output,
+# extracted frames, the raw dashboard video. The committed GIFs live in demo/.
+out/
+
+# Playwright recorder deps + browser downloads.
+playwright/node_modules/
+playwright/package-lock.json
+
+# Built demo binaries (rebuild with `go build -o demo/agentguard.exe ./cmd/agentguard`).
+agentguard.exe
+mock.exe
