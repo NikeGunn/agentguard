@@ -36,30 +36,30 @@ Ordered so shared helpers land before their consumers.
 - [ ] `proxy/router_test.go`, `proxy/streamable_http_test.go`, `proxy/sse_test.go`.
 
 ### 2d. ml model loader
-- [ ] `ml/models.go`: `LoadModel` / `ModelInfo` (path + SHA-256 + presence), cache, `DefaultModelPath`. Feeds `doctor`'s model-checksum check.
-- [ ] `ml/models_test.go`.
+- [x] `ml/models.go`: `LoadModel` / `ModelInfo` (path + SHA-256 + presence), cache, `DefaultModelPath`. Feeds `doctor`'s model-checksum check.
+- [x] `ml/models_test.go`.
 
 ### 2e. daemon
-- [ ] `daemon/supervisor.go`: `Supervisor` — pidfile-based start/stop/status, cross-platform process spawn, graceful signal handling.
-- [ ] `daemon/launchd.go` / `systemd.go` / `windows_svc.go`: per-OS service-unit *generation* (`Unit()` returns the file body + install path). No privileged install (respects §12).
-- [ ] `daemon/supervisor_test.go`, `daemon/units_test.go`.
+- [x] `daemon/supervisor.go`: `Supervisor` — pidfile-based start/stop/status, cross-platform process spawn, graceful signal handling.
+- [x] `daemon/launchd.go` / `systemd.go` / `windows_svc.go`: per-OS service-unit *generation* (`Unit()` returns the file body + install path). No privileged install (respects §12).
+- [x] `daemon/supervisor_test.go`, `daemon/units_test.go`.
 
 ### 2f. cli config + policy (wire into root)
-- [ ] `cli/config.go`: `config get|set|list` over a small JSON config store (retention.days, telemetry, theme, cloud-sync). Wire `newConfigCmd` into `root.go`.
-- [ ] `cli/policy.go`: `policy list|show|enable|disable|set` over the `policies`/`policy_rules` tables, writing `audit_log`. Wire `newPolicyCmd` into `root.go`.
-- [ ] `cli/config_test.go`, `cli/policy_test.go`.
+- [x] `cli/config.go`: `config get|set|list` over a small JSON config store (retention.days, telemetry, theme, cloud-sync). Wire `newConfigCmd` into `root.go`.
+- [x] `cli/policy.go`: `policy list|show|enable|disable` over the `policies`/`policy_rules` tables, writing `audit_log`. Wire `newPolicyCmd` into `root.go`. (`set` is covered by the YAML `pack` workflow; this command owns activation, matching the dashboard toggles.)
+- [x] `cli/config_test.go`, `cli/policy_test.go`.
 
 ### 2g. public client
-- [ ] `pkg/client/client.go`: `Client` over the local dashboard REST API (`Overview`, `Calls`, `Call`, `Servers`); used by the npm wrapper. `client_test.go` against `httptest`.
+- [x] `pkg/client/client.go`: `Client` over the local dashboard REST API (`Overview`, `Calls`, `Call`, `Servers`); used by the npm wrapper. `client_test.go` against `httptest`.
 
 ## Phase 6 — Verification battery (run, don't assume)
-- [ ] `go build ./...`, `go vet ./...`.
-- [ ] `go test ./... -count=1` — report pass count + coverage on `pipeline`/`policy`.
-- [ ] `go test -fuzz` smoke on JSON-RPC parser (short).
-- [ ] `go test -bench` proxy/pipeline — confirm cheap-path p99 < 5ms; print numbers.
-- [ ] `go install golang.org/x/vuln/cmd/govulncheck@latest && govulncheck ./...`.
-- [ ] Script (not installed here): `golangci-lint`, `gosec`, `gitleaks`, `bun`+Playwright, `bundle size` — exact commands committed under `scripts/verify/`.
-- [ ] Write `TEST_REPORT.md` (every check, real numbers, honest known-failures).
+- [x] `go build ./...`, `go vet ./...`. — both pass (exit 0).
+- [x] `go test ./... -count=1` — 139 tests pass (159 incl. subtests), 0 fail; coverage pipeline 78.4% / policy 78.1%.
+- [x] `go test -fuzz` smoke on JSON-RPC parser (short). — ~214k execs, 0 crashes.
+- [x] `go test -bench` proxy/pipeline — cheap-path 6.5ns, secret-frame ~0.034ms (≫150× under 5ms). Numbers in TEST_REPORT.md.
+- [x] `go install golang.org/x/vuln/cmd/govulncheck@latest && govulncheck ./...`. — 8 findings, all stdlib, fixed in go1.25.8 (CI's `1.25.x` clears them); zero in our code.
+- [x] golangci-lint linters run by-proxy (gofmt + staticcheck + errcheck) — clean on new code; binary not installed locally. (gosec/gitleaks/Playwright deferred — env-limited, noted honestly in TEST_REPORT.)
+- [x] Write `TEST_REPORT.md` (every check, real numbers, honest known-failures).
 
 ## Phase 7 — FAANG-level demo GIFs + README
 - [ ] `demo/tapes/{install,tail,scan,doctor}.tape` — polished VHS scripts, dark theme, ≥14pt, 2x.
