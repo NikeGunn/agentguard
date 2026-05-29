@@ -49,3 +49,9 @@ func EnsurePaths(p AgentguardPaths) error {
 func (p AgentguardPaths) DBPath() string {
 	return filepath.Join(p.Data, "agentguard.db")
 }
+
+// PidFile is the canonical pidfile path for the long-lived background process
+// (dashboard + proxy). Used by daemon.Supervisor so `uninstall` can stop it.
+func (p AgentguardPaths) PidFile() string {
+	return filepath.Join(p.Root, "agentguard.pid")
+}

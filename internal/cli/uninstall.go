@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	agentdetect "github.com/agentguard/agentguard/internal/agent_detect"
+	"github.com/agentguard/agentguard/internal/daemon"
 	"github.com/agentguard/agentguard/internal/store"
 )
 
@@ -50,6 +51,19 @@ database is left in place unless --purge is given.`,
 					fmt.Fprintln(out, "  Aborted.")
 					return nil
 				}
+			}
+
+			// Stop the background process (dashboard + proxy) first. Leaving it
+			// running keeps the binary locked on Windows, which is exactly what
+			// breaks the next install — so a clean uninstall must end the daemon.
+			sup := daemon.NewSupervisor(paths.PidFile())
+			switch err := sup.Stop(); {
+			case err == nil:
+				fmt.Fprintln(out, "  ⏹ stopped the AgentGuard daemon")
+			case errors.Is(err, daemon.ErrNotRunning):
+				// nothing to stop — fine.
+			default:
+				fmt.Fprintf(out, "  ⚠ could not stop the daemon cleanly: %v\n", err)
 			}
 
 			st, err := store.Open(cmd.Context(), paths.DBPath())

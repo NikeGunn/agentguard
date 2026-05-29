@@ -76,7 +76,49 @@ try {
     Expand-Archive -Path (Join-Path $tmp $archive) -DestinationPath $tmp -Force
     $exe = Get-ChildItem -Path $tmp -Filter "agentguard.exe" -Recurse | Select-Object -First 1
     if (-not $exe) { throw "agentguard.exe not found inside $archive" }
-    Move-Item -Path $exe.FullName -Destination (Join-Path $InstallDir "agentguard.exe") -Force
+
+    $dest = Join-Path $InstallDir "agentguard.exe"
+
+    # A previous install may have left the daemon (or `dashboard`/`tail`) running.
+    # On Windows you cannot overwrite the .exe of a running process — the OS holds
+    # an exclusive lock — so a re-install fails with "Cannot create a file when that
+    # file already exists". Ask the old binary to stop cleanly, then stop any
+    # lingering processes whose image path is the file we're about to replace.
+    if (Test-Path $dest) {
+        try { & $dest daemon stop *> $null } catch { }
+        Get-CimInstance Win32_Process -Filter "Name = 'agentguard.exe'" -ErrorAction SilentlyContinue |
+            Where-Object { $_.ExecutablePath -eq $dest } |
+            ForEach-Object {
+                Write-Host "    stopping running agentguard (pid $($_.ProcessId)) to free the binary" -ForegroundColor DarkYellow
+                Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
+            }
+    }
+
+    # Copy-Item -Force overwrites cleanly where Move-Item -Force is unreliable on
+    # Windows. Retry briefly to ride out AV scans or a slow process exit; if the
+    # file is still locked, fall back to the rename-aside swap that Windows allows
+    # even while a handle is open.
+    $copied = $false
+    foreach ($attempt in 1..5) {
+        try {
+            Copy-Item -Path $exe.FullName -Destination $dest -Force -ErrorAction Stop
+            $copied = $true
+            break
+        } catch {
+            if ($attempt -eq 5) { break }
+            Start-Sleep -Milliseconds 400
+        }
+    }
+    if (-not $copied) {
+        # Last resort: a locked file can still be renamed out of the way, which
+        # frees the original name for the new binary. The stale .old is cleaned
+        # up on the next run (it too can be renamed even while locked).
+        $old = "$dest.old"
+        Remove-Item $old -Force -ErrorAction SilentlyContinue
+        Rename-Item -Path $dest -NewName "agentguard.exe.old" -Force -ErrorAction Stop
+        Copy-Item -Path $exe.FullName -Destination $dest -Force -ErrorAction Stop
+        Remove-Item $old -Force -ErrorAction SilentlyContinue
+    }
 
     Write-Host "==> Installed to $InstallDir\agentguard.exe"
 

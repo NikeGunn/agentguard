@@ -172,6 +172,15 @@ machine, back up their MCP configs, and rewrite each entry to invoke
 				}
 			}
 
+			// Drop the Skill into Claude Code so the user can hand setup/operation
+			// to the agent (user-side-system-design.md §6). Best-effort: a failure
+			// here never aborts a successful patch.
+			if !dryRun {
+				if _, serr := installSkill(home, out); serr != nil {
+					fmt.Fprintf(out, "  ⚠ skill install: %v\n", serr)
+				}
+			}
+
 			elapsed := time.Since(started)
 			fmt.Fprintf(out, "✓ done in %s — %d entr%s rewritten, %d already wrapped\n",
 				elapsed.Truncate(time.Millisecond), totalRewritten, plural(totalRewritten, "y", "ies"), totalUnchanged)

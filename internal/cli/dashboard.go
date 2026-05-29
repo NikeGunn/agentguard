@@ -3,12 +3,14 @@ package cli
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 	"time"
 
 	"github.com/spf13/cobra"
 
+	"github.com/agentguard/agentguard/internal/daemon"
 	"github.com/agentguard/agentguard/internal/dashboard"
 	"github.com/agentguard/agentguard/internal/store"
 )
@@ -45,6 +47,16 @@ timeseries. Bound to 127.0.0.1 only.`,
 			srv := dashboard.New(dashboard.Config{Store: s, Addr: addr})
 			url := "http://" + srv.Addr()
 			fmt.Fprintf(cmd.OutOrStdout(), "AgentGuard dashboard listening on %s\n", url)
+
+			// Record our PID so `agentguard uninstall` (and the installer) can
+			// stop this process — otherwise it keeps holding the binary open on
+			// Windows and the next install can't overwrite agentguard.exe.
+			if paths, perr := Paths(); perr == nil {
+				sup := daemon.NewSupervisor(paths.PidFile())
+				if werr := sup.WritePid(os.Getpid()); werr == nil {
+					defer func() { _ = sup.Stop() }()
+				}
+			}
 
 			if !noBrowser {
 				go func() {
