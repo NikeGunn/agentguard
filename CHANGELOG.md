@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v1.2.1] — 2026-05-29
+
+### Fixed
+- **Dashboard was completely non-interactive.** The `.modal-backdrop` /
+  `.palette-backdrop` rule set `display:grid`, which outranks the UA
+  `[hidden]{display:none}` rule by specificity — so even when `hidden`, both
+  backdrops stayed full-screen, invisible, `position:fixed` overlays at
+  `z-index:70` that swallowed *every* click. Nav links, table rows, the theme
+  toggle and the KPI cards all appeared dead; only the keyboard-driven command
+  palette (Ctrl/Cmd+K) still worked. Re-assert `display:none` on the `[hidden]`
+  backdrops.
+
+### Added
+- **Windows-safe (re)install.** `install.ps1` now stops a running AgentGuard
+  daemon/dashboard before overwriting `agentguard.exe` (Windows locks the image
+  of a running process), with copy-retry and a rename-aside fallback.
+- **Clean uninstall stops the daemon.** `agentguard uninstall` ends the
+  background process via the pidfile supervisor before reverting configs, so it
+  no longer leaves a locked binary behind.
+- **`agentguard init` installs the Claude Code Skill** so the agent can drive
+  setup/operation, and `dashboard` records its PID for the supervisor.
+
 ## [v1.2.0] — 2026-05-29
 
 ### Added

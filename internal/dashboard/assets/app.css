@@ -310,6 +310,11 @@ select, input[type="checkbox"] {
   position: fixed; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(2px);
   display: grid; z-index: 70;
 }
+/* The class above sets display:grid, which has higher specificity than the UA
+   [hidden]{display:none} rule — so without this an "hidden" backdrop stays a
+   full-screen, invisible, pointer-eating overlay that blocks every click on the
+   page. Re-assert the hide. */
+.modal-backdrop[hidden], .palette-backdrop[hidden] { display: none; }
 .modal-backdrop { place-items: center; }
 .modal {
   background: var(--bg-elev); border: 1px solid var(--border); border-radius: 14px;
