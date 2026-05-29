@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v1.2.2] — 2026-05-29
+
 ### Fixed
+- **`policy list` pointed at a non-existent `pack install` command** and implied
+  no protection was active. Clarified: the built-in `default` pack always runs;
+  pointed to `pack show builtin/default` and `wrap --pack strict`.
 - **`init` re-run left `uninstall` restoring the wrong config.** The agents
   upsert keyed on agent *kind* but its `ON CONFLICT … DO UPDATE` only touched
   `last_seen_at`/`active`, so a second `init` (e.g. after the config moved, or
