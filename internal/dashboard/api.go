@@ -2,8 +2,13 @@ package dashboard
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
+
+	"github.com/go-chi/chi/v5"
+
+	"github.com/agentguard/agentguard/internal/store"
 )
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
@@ -58,6 +63,27 @@ func (s *Server) handleCalls(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, nilToEmpty(rows))
+}
+
+// handleCallDetail serves GET /api/calls/{id} — the full single-call record
+// the investigation page renders: header, inline request/response (for the
+// diff view), the ordered pipeline stage waterfall, and stored artifacts.
+func (s *Server) handleCallDetail(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "missing call id"})
+		return
+	}
+	detail, err := s.store.CallDetail(r.Context(), id)
+	if errors.Is(err, store.ErrCallNotFound) {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "call not found"})
+		return
+	}
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, detail)
 }
 
 func (s *Server) handleStats(w http.ResponseWriter, _ *http.Request) {

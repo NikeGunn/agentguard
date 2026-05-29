@@ -82,6 +82,7 @@ func (s *Server) routes() *chi.Mux {
 	r.Get("/api/top-tools", s.handleTopTools)
 	r.Get("/api/servers", s.handleServers)
 	r.Get("/api/calls", s.handleCalls)
+	r.Get("/api/calls/{id}", s.handleCallDetail)
 	r.Get("/api/stats", s.handleStats)
 	r.Get("/events", s.handleSSE)
 
