@@ -30,3 +30,6 @@ npm/node_modules/
 # release artifacts
 dist/
 *.exe~
+
+# Local Claude Code agent state
+.claude/

@@ -2,12 +2,11 @@ package pipeline
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"sort"
 	"sync"
+
+	"github.com/agentguard/agentguard/internal/crypto"
 )
 
 // AttestationStore is the persistence interface the attestation stage
@@ -91,7 +90,9 @@ func (s *AttestationStage) persist(ctx context.Context, serverID, hash string) {
 }
 
 // hashToolsList parses a JSON-RPC tools/list response and returns a
-// deterministic SHA-256 of the (sorted) tool definitions.
+// deterministic SHA-256 of the (sorted) tool definitions. The actual hashing
+// lives in internal/crypto so the same canonicalisation is reused everywhere
+// (DRY) and is independent of JSON key ordering.
 func hashToolsList(raw []byte) (string, error) {
 	var env struct {
 		Result struct {
@@ -101,22 +102,11 @@ func hashToolsList(raw []byte) (string, error) {
 	if err := json.Unmarshal(raw, &env); err != nil {
 		return "", err
 	}
-	type kv struct {
-		Name        string `json:"name"`
-		Description string `json:"description,omitempty"`
-		InputSchema any    `json:"inputSchema,omitempty"`
-	}
-	out := make([]kv, 0, len(env.Result.Tools))
+	defs := make([]crypto.ToolDef, 0, len(env.Result.Tools))
 	for _, t := range env.Result.Tools {
 		name, _ := t["name"].(string)
 		desc, _ := t["description"].(string)
-		out = append(out, kv{Name: name, Description: desc, InputSchema: t["inputSchema"]})
+		defs = append(defs, crypto.ToolDef{Name: name, Description: desc, InputSchema: t["inputSchema"]})
 	}
-	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
-	canonical, err := json.Marshal(out)
-	if err != nil {
-		return "", err
-	}
-	sum := sha256.Sum256(canonical)
-	return hex.EncodeToString(sum[:]), nil
+	return crypto.HashToolList(defs)
 }

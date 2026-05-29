@@ -32,6 +32,8 @@ func NewRoot() *cobra.Command {
 	cmd.AddCommand(newDashboardCmd())
 	cmd.AddCommand(newReplayCmd())
 	cmd.AddCommand(newPackCmd())
+	cmd.AddCommand(newPolicyCmd())
+	cmd.AddCommand(newConfigCmd())
 	cmd.AddCommand(newSeedDemoCmd())
 	return cmd
 }

@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Completed the 15 stubbed internal packages** (every file ships with tests
+  in the same package; suite is 139 tests, 0 failures):
+  - `internal/crypto` — `SHA256Hex`, `CanonicalJSON`, `HashToolSchema` (DRY:
+    `pipeline/attestation.go` now calls it), and a graceful-degrade `cosign`
+    blob verifier.
+  - `internal/store` — opt-in DuckDB analytics accelerator (behind the
+    `duckdb` build tag; pure-Go SQLite fallback keeps `CGO_ENABLED=0` green)
+    and a retention/`VACUUM`/`wal_checkpoint` job.
+  - `internal/proxy` — transport router, streamable-HTTP reverse proxy, and
+    legacy SSE passthrough, all running the pipeline on request/response.
+  - `internal/ml` — `LoadModel`/`ModelInfo` with SHA-256 verification + cache,
+    feeding `doctor`'s model-checksum check.
+  - `internal/daemon` — pidfile `Supervisor` (start/stop/status, graceful
+    signal + Kill fallback) and per-OS service-unit *generators*
+    (systemd user unit, launchd plist, Windows scheduled-task) — generation
+    only, no privileged install.
+  - `internal/cli` — `agentguard config get|set|list` (JSON settings store)
+    and `agentguard policy list|show|enable|disable` (audit-logged toggles),
+    both wired into the root command.
+  - `pkg/client` — public read-only Go client for the dashboard API
+    (`Overview`, `Calls`, `Call`, `Servers`) used by the npm wrapper.
 - **Real-time dashboard cockpit** (`internal/dashboard/assets/`): the embedded
   console is now a live security cockpit, not a static page.
   - "Threats blocked today" hero counter with a count-up animation that bumps
