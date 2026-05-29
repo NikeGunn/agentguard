@@ -85,7 +85,11 @@ func newPolicyListCmd() *cobra.Command {
 				return err
 			}
 			if len(rows) == 0 {
-				fmt.Fprintln(cmd.OutOrStdout(), "No policies installed. Run 'agentguard init' or 'agentguard pack install <slug>'.")
+				out := cmd.OutOrStdout()
+				fmt.Fprintln(out, "No custom policies installed.")
+				fmt.Fprintln(out, "Inspection still runs the built-in 'default' rule pack on every call")
+				fmt.Fprintln(out, "(see 'agentguard pack show builtin/default'). Use --pack strict on")
+				fmt.Fprintln(out, "'agentguard wrap' for the stricter block-by-default set.")
 				return nil
 			}
 			tw := tabwriter.NewWriter(cmd.OutOrStdout(), 0, 2, 2, ' ', 0)
