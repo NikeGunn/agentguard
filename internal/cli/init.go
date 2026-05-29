@@ -211,7 +211,10 @@ func upsertAgentRow(ctx context.Context, st *store.Store, d *agentdetect.Detecti
 			detected_at, last_seen_at, active)
 		VALUES (?, ?, ?, ?, ?, ?, ?, 1)
 		ON CONFLICT(id) DO UPDATE SET
-			last_seen_at = excluded.last_seen_at,
+			display_name  = excluded.display_name,
+			config_path   = excluded.config_path,
+			config_backup = excluded.config_backup,
+			last_seen_at  = excluded.last_seen_at,
 			active = 1`,
 		string(d.Kind), string(d.Kind), d.DisplayName,
 		d.ConfigPath, d.ConfigPath+agentdetect.BackupSuffix,

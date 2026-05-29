@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [Unreleased]
+
+### Fixed
+- **`init` re-run left `uninstall` restoring the wrong config.** The agents
+  upsert keyed on agent *kind* but its `ON CONFLICT … DO UPDATE` only touched
+  `last_seen_at`/`active`, so a second `init` (e.g. after the config moved, or
+  with a different `--home`) kept the original `config_path`/`config_backup`.
+  `uninstall` reads those columns to find each `.agentguard.bak`, so it looked
+  for the backup at the stale path, failed to restore, and left the
+  actually-patched config routed through `agentguard wrap`. Update all three
+  columns on conflict. Verified end-to-end: init → uninstall is byte-identical.
+
 ## [v1.2.1] — 2026-05-29
 
 ### Fixed
