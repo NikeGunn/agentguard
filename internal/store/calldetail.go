@@ -36,26 +36,26 @@ type ArtifactRow struct {
 // call header, its inline request/response (for the diff view), the ordered
 // stage waterfall, and any stored artifacts.
 type CallDetail struct {
-	ID              string  `json:"id"`
-	SessionID       string  `json:"session_id"`
-	ServerID        string  `json:"server_id"`
-	ServerName      string  `json:"server_name"`
-	ToolName        string  `json:"tool_name"`
-	Direction       string  `json:"direction"`
-	Verdict         string  `json:"verdict"`
-	VerdictReason   string  `json:"verdict_reason,omitempty"`
-	RiskScore       float64 `json:"risk_score,omitempty"`
-	StartedAt       int64   `json:"started_at"`
-	CompletedAt     int64   `json:"completed_at,omitempty"`
-	LatencyMSProxy  int64   `json:"latency_ms_proxy,omitempty"`
-	LatencyMSUp     int64   `json:"latency_ms_upstream,omitempty"`
-	CostUSD         float64 `json:"cost_usd"`
-	TokenCount      int64   `json:"token_count"`
-	RequestInline   string  `json:"request_inline,omitempty"`
-	ResponseInline  string  `json:"response_inline,omitempty"`
-	ErrorInline     string  `json:"error_inline,omitempty"`
-	RequestSizeB    int64   `json:"request_size_bytes,omitempty"`
-	ResponseSizeB   int64   `json:"response_size_bytes,omitempty"`
+	ID             string  `json:"id"`
+	SessionID      string  `json:"session_id"`
+	ServerID       string  `json:"server_id"`
+	ServerName     string  `json:"server_name"`
+	ToolName       string  `json:"tool_name"`
+	Direction      string  `json:"direction"`
+	Verdict        string  `json:"verdict"`
+	VerdictReason  string  `json:"verdict_reason,omitempty"`
+	RiskScore      float64 `json:"risk_score,omitempty"`
+	StartedAt      int64   `json:"started_at"`
+	CompletedAt    int64   `json:"completed_at,omitempty"`
+	LatencyMSProxy int64   `json:"latency_ms_proxy,omitempty"`
+	LatencyMSUp    int64   `json:"latency_ms_upstream,omitempty"`
+	CostUSD        float64 `json:"cost_usd"`
+	TokenCount     int64   `json:"token_count"`
+	RequestInline  string  `json:"request_inline,omitempty"`
+	ResponseInline string  `json:"response_inline,omitempty"`
+	ErrorInline    string  `json:"error_inline,omitempty"`
+	RequestSizeB   int64   `json:"request_size_bytes,omitempty"`
+	ResponseSizeB  int64   `json:"response_size_bytes,omitempty"`
 
 	Stages    []StageRow    `json:"stages"`
 	Artifacts []ArtifactRow `json:"artifacts"`
@@ -67,9 +67,9 @@ func (s *Store) CallDetail(ctx context.Context, id string) (*CallDetail, error) 
 	d := &CallDetail{Stages: []StageRow{}, Artifacts: []ArtifactRow{}}
 	var (
 		reason, reqInline, respInline, errInline sql.NullString
-		risk, cost                                sql.NullFloat64
-		completedAt, latProxy, latUp              sql.NullInt64
-		reqSize, respSize, tokens                 sql.NullInt64
+		risk, cost                               sql.NullFloat64
+		completedAt, latProxy, latUp             sql.NullInt64
+		reqSize, respSize, tokens                sql.NullInt64
 	)
 	row := s.DB.QueryRowContext(ctx, `
 		SELECT
