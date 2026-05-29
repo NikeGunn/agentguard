@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v1.2.0] — 2026-05-29
+
 ### Added
 - **Completed the 15 stubbed internal packages** (every file ships with tests
   in the same package; suite is 139 tests, 0 failures):
