@@ -13,7 +13,7 @@ func TestAnalytics_DefaultEngineIsSQLite(t *testing.T) {
 
 	a, err := NewAnalytics(s)
 	require.NoError(t, err)
-	defer a.Close()
+	defer func() { _ = a.Close() }()
 
 	// On the default (pure-Go) build the SQLite engine answers directly.
 	require.Equal(t, EngineSQLite, a.Engine())
@@ -42,7 +42,7 @@ func TestAnalytics_PassThroughQueries(t *testing.T) {
 	defer s2.Close()
 	a, err := NewAnalytics(s2)
 	require.NoError(t, err)
-	defer a.Close()
+	defer func() { _ = a.Close() }()
 
 	tools, err := a.TopTools(ctx, 0, 10)
 	require.NoError(t, err)

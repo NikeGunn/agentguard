@@ -19,21 +19,21 @@
 Ordered so shared helpers land before their consumers.
 
 ### 2a. crypto (foundation — reused by attestation & registry)
-- [ ] `crypto/hashing.go`: `SHA256Hex`, `CanonicalJSON`, `HashToolSchema` (the canonical (name,desc,inputSchema) hash currently inline in `pipeline/attestation.go`).
-- [ ] `crypto/cosign.go`: `Verifier` wrapping the `cosign` CLI; `Available()`, `VerifyBlob`; graceful degrade (returns `ErrCosignUnavailable`) when binary absent.
-- [ ] `crypto/hashing_test.go`, `crypto/cosign_test.go`.
-- [ ] Refactor `pipeline/attestation.go` to call `crypto.HashToolSchema` (DRY; behaviour-preserving).
+- [x] `crypto/hashing.go`: `SHA256Hex`, `CanonicalJSON`, `HashToolSchema` (the canonical (name,desc,inputSchema) hash currently inline in `pipeline/attestation.go`).
+- [x] `crypto/cosign.go`: `Verifier` wrapping the `cosign` CLI; `Available()`, `VerifyBlob`; graceful degrade (returns `ErrCosignUnavailable`) when binary absent.
+- [x] `crypto/hashing_test.go`, `crypto/cosign_test.go`.
+- [x] Refactor `pipeline/attestation.go` to call `crypto.HashToolList` (which composes `HashToolSchema`) (DRY; behaviour-preserving).
 
 ### 2b. store (analytics + lifecycle)
-- [ ] `store/duckdb.go`: `Analytics` attach SQLite read-only via go-duckdb; `Available()` probe; fall back to the existing SQLite analytics when the driver/CGO isn't present (pure-Go build stays green).
-- [ ] `store/retention.go`: `RetentionJob` — delete rows older than N days, `wal_checkpoint(TRUNCATE)`, weekly `VACUUM`; `RunOnce` + scheduled `Start(ctx)`.
-- [ ] `store/duckdb_test.go`, `store/retention_test.go`.
+- [x] `store/duckdb.go`: `Analytics` attach SQLite read-only via go-duckdb; `Available()` probe; fall back to the existing SQLite analytics when the driver/CGO isn't present (pure-Go build stays green). (Split: `duckdb_default.go` pure-Go fallback + `duckdb_cgo.go` behind the `duckdb` tag.)
+- [x] `store/retention.go`: `RetentionJob` — delete rows older than N days, `wal_checkpoint(TRUNCATE)`, weekly `VACUUM`; `RunOnce` + scheduled `Start(ctx)`.
+- [x] `store/duckdb_test.go`, `store/retention_test.go`.
 
 ### 2c. proxy (transports + router)
-- [ ] `proxy/router.go`: `Transport` enum + `SelectChain` / `Route` choosing the inspection chain by transport & direction.
-- [ ] `proxy/streamable_http.go`: `HTTPProxy` — reverse proxy that runs the pipeline on request & response bodies, bound to 127.0.0.1.
-- [ ] `proxy/sse.go`: legacy SSE passthrough that frames `data:` events through the pipeline.
-- [ ] `proxy/router_test.go`, `proxy/streamable_http_test.go`, `proxy/sse_test.go`.
+- [x] `proxy/router.go`: `Transport` enum + `SelectChain` / `Route` choosing the inspection chain by transport & direction.
+- [x] `proxy/streamable_http.go`: `HTTPProxy` — reverse proxy that runs the pipeline on request & response bodies, bound to 127.0.0.1.
+- [x] `proxy/sse.go`: legacy SSE passthrough that frames `data:` events through the pipeline.
+- [x] `proxy/router_test.go`, `proxy/streamable_http_test.go`, `proxy/sse_test.go`.
 
 ### 2d. ml model loader
 - [x] `ml/models.go`: `LoadModel` / `ModelInfo` (path + SHA-256 + presence), cache, `DefaultModelPath`. Feeds `doctor`'s model-checksum check.
