@@ -31,6 +31,7 @@
   <header class="topbar">
     <h1 id="pageTitle">Overview</h1>
     <div class="window-select">
+      <button class="pause-btn" id="pauseStream" type="button" title="Pause/resume the live stream">⏸ Pause</button>
       <label>Window
         <select id="window">
           <option value="15m">15m</option>
@@ -44,6 +45,19 @@
   </header>
 
   <section id="page-overview" class="page active">
+    <div class="hero">
+      <div class="hero-shield" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="42" height="42">
+          <path fill="currentColor" d="M12 2 4 5v6c0 5 3.4 9.5 8 11 4.6-1.5 8-6 8-11V5l-8-3Zm0 6.5 4 1.5v3c0 3-1.7 5.6-4 6.7-2.3-1.1-4-3.7-4-6.7v-3l4-1.5Z"/>
+        </svg>
+      </div>
+      <div class="hero-body">
+        <div class="hero-label">Threats blocked today</div>
+        <div class="hero-count" id="heroBlocked" aria-live="polite">0</div>
+        <div class="hero-sub muted" id="heroSub">prompt injection · exfiltration · rug-pulls · runaway loops</div>
+      </div>
+    </div>
+
     <div class="kpi-grid">
       <div class="kpi"><div class="kpi-label">Calls</div><div class="kpi-value" id="kpiCalls">—</div></div>
       <div class="kpi"><div class="kpi-label">Blocked</div><div class="kpi-value danger" id="kpiBlocked">—</div></div>
@@ -55,14 +69,23 @@
       <div class="kpi"><div class="kpi-label">Open sessions</div><div class="kpi-value" id="kpiSessions">—</div></div>
     </div>
 
-    <div class="card">
-      <div class="card-header"><h2>Calls per minute</h2><span class="muted" id="sparkSummary"></span></div>
-      <svg id="spark" viewBox="0 0 800 200" preserveAspectRatio="none"></svg>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><h2>Calls per minute</h2><span class="muted" id="sparkSummary"></span></div>
+        <svg id="spark" viewBox="0 0 800 200" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2>Verdict mix</h2></div>
+        <div class="donut-wrap">
+          <svg id="donut" viewBox="0 0 120 120" width="160" height="160" aria-label="Verdict distribution"></svg>
+          <ul class="donut-legend" id="donutLegend"></ul>
+        </div>
+      </div>
     </div>
 
     <div class="card">
-      <div class="card-header"><h2>Recent activity</h2><a class="muted" href="#calls">view all &rarr;</a></div>
-      <table class="data-table" id="recentTable">
+      <div class="card-header"><h2>Activity river</h2><a class="muted" href="#calls">view all &rarr;</a></div>
+      <table class="data-table clickable" id="recentTable" aria-live="polite" aria-label="Live tool call activity">
         <thead><tr><th>Time</th><th>Server</th><th>Tool</th><th>Dir</th><th>Verdict</th><th>Reason</th><th>Latency</th></tr></thead>
         <tbody></tbody>
       </table>
@@ -87,7 +110,7 @@
           </label>
         </div>
       </div>
-      <table class="data-table" id="callsTable">
+      <table class="data-table clickable" id="callsTable">
         <thead><tr><th>Time</th><th>Server</th><th>Tool</th><th>Dir</th><th>Verdict</th><th>Reason</th><th>Latency</th></tr></thead>
         <tbody></tbody>
       </table>
@@ -105,15 +128,37 @@
   </section>
 
   <section id="page-servers" class="page">
-    <div class="card">
-      <div class="card-header"><h2>MCP servers</h2></div>
-      <table class="data-table" id="serversTable">
-        <thead><tr><th>Name</th><th>Transport</th><th>Trust</th><th>Total</th><th>Blocks</th><th>First seen</th><th>Last seen</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
+    <div class="card-header"><h2>MCP servers — trust surface</h2></div>
+    <div class="server-grid" id="serverGrid"></div>
   </section>
+
+  <footer class="appfoot">
+    <span>AgentGuard · zero-trust security for AI agents</span>
+    <a href="https://agentguard.space" target="_blank" rel="noopener">agentguard.space</a>
+  </footer>
 </main>
+
+<!-- Toast stack: live events worth surfacing (blocks, new servers, score drops). -->
+<div class="toast-stack" id="toastStack" aria-live="assertive" aria-atomic="true"></div>
+
+<!-- Call-detail drawer: stage waterfall + request/response diff. -->
+<div class="modal-backdrop" id="callModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="callModalTitle">
+    <div class="modal-head">
+      <h2 id="callModalTitle">Tool call</h2>
+      <button class="modal-close" id="callModalClose" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body" id="callModalBody"></div>
+  </div>
+</div>
+
+<!-- Command palette (Cmd/Ctrl+K). -->
+<div class="palette-backdrop" id="palette" hidden>
+  <div class="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+    <input type="text" id="paletteInput" placeholder="Jump to a page, server, or recent call…" autocomplete="off">
+    <ul class="palette-list" id="paletteList"></ul>
+  </div>
+</div>
 
 <script src="/app.js"></script>
 </body>

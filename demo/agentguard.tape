@@ -41,7 +41,7 @@ Type "# AgentGuard — zero-trust security for AI agents" Sleep 700ms Enter
 Sleep 500ms
 
 # Pretend-install line (we don't actually re-install; we already built the .exe)
-Type "curl -fsSL https://agentguard.dev/install | sh" Sleep 1000ms Enter
+Type "curl -fsSL https://agentguard.space/install | sh" Sleep 1000ms Enter
 Sleep 200ms
 Hide
 Type "Write-Host '==> AgentGuard v1.0.0-rc1  (windows/amd64)' -ForegroundColor DarkGray" Enter

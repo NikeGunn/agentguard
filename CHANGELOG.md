@@ -5,6 +5,40 @@ All notable changes to AgentGuard are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- **Real-time dashboard cockpit** (`internal/dashboard/assets/`): the embedded
+  console is now a live security cockpit, not a static page.
+  - "Threats blocked today" hero counter with a count-up animation that bumps
+    on every new block.
+  - Verdict-mix donut that animates as live calls stream in.
+  - Activity river with `aria-live`; rows are clickable.
+  - **Call-detail drawer**: pipeline **stage waterfall** (per-stage ns/µs/ms,
+    coloured by outcome), side-by-side request/response **diff** for
+    transform/block verdicts, decoded verdict reason, and Replay /
+    mark-false-positive / copy-as-cURL actions.
+  - **Servers page** rebuilt as a trust-gauge card grid (radial SVG gauges,
+    green ≥80 / yellow 50–79 / red <50).
+  - Toast notifications on block/flag, a command palette (Cmd/Ctrl+K), a
+    global pause-stream button, `requestAnimationFrame`-batched SSE updates
+    with a rolling 500-call client window, and `prefers-reduced-motion`
+    support. No new dependencies; everything stays embedded via `embed.FS`.
+- **`GET /api/calls/:id`** (`internal/dashboard`, `internal/store`): full
+  single-call detail — header, inline request/response, ordered stage
+  waterfall, and artifacts — with a clean 404 for unknown ids.
+- **`agentguard seed-demo`** (hidden, `internal/cli`): generates realistic,
+  varied demo traffic through the real store layer (≈500 historical calls,
+  six scripted security scenarios incl. direct + indirect prompt injection,
+  a rug-pull/schema-drift flag, a loop-detection trip, credential redaction,
+  and a low-trust exfiltration block). `--live` streams new calls every
+  1–3 s; `--reset` removes all demo data (tagged `client_user="demo"`).
+
+### Changed
+- Migrated the final `agentguard.dev` reference (the VHS demo tape install
+  line) to `agentguard.space`; the repo now has zero `agentguard.dev`
+  references and the GitHub repo homepage points at `agentguard.space`.
+
 ## [v1.0.0-rc1] — Milestone 6 (launch readiness)
 
 ### Added
