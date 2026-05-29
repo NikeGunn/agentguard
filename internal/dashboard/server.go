@@ -73,17 +73,25 @@ func (s *Server) Run(ctx context.Context) error {
 func (s *Server) routes() *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
-	r.Use(middleware.Timeout(30 * time.Second))
 	// All requests bind to localhost only (the listener already enforces
 	// 127.0.0.1) — no CSRF or origin checks needed at this stage.
 
-	r.Get("/api/overview", s.handleOverview)
-	r.Get("/api/timeseries", s.handleTimeseries)
-	r.Get("/api/top-tools", s.handleTopTools)
-	r.Get("/api/servers", s.handleServers)
-	r.Get("/api/calls", s.handleCalls)
-	r.Get("/api/calls/{id}", s.handleCallDetail)
-	r.Get("/api/stats", s.handleStats)
+	// The 30s timeout applies ONLY to the snapshot JSON API, which must be
+	// fast. It must NOT wrap /events: SSE is a long-lived stream that has
+	// already written its 200 headers, so when the timeout fired it tried to
+	// write a 504 on top of the open stream — the "superfluous WriteHeader"
+	// log that repeated every ~31s. Static assets are likewise left unwrapped.
+	r.Group(func(api chi.Router) {
+		api.Use(middleware.Timeout(30 * time.Second))
+		api.Get("/api/overview", s.handleOverview)
+		api.Get("/api/timeseries", s.handleTimeseries)
+		api.Get("/api/top-tools", s.handleTopTools)
+		api.Get("/api/servers", s.handleServers)
+		api.Get("/api/calls", s.handleCalls)
+		api.Get("/api/calls/{id}", s.handleCallDetail)
+		api.Get("/api/stats", s.handleStats)
+	})
+
 	r.Get("/events", s.handleSSE)
 
 	// Static asset handler — serves embedded dashboard at "/".

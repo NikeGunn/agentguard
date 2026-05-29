@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [v1.2.1] — 2026-05-29
 
 ### Fixed
+- **Dashboard logged `superfluous response.WriteHeader call` every ~31s.** The
+  30s chi `Timeout` middleware was applied to the long-lived `/events` SSE
+  stream; ~5s after each 25s heartbeat the timeout tried to write a 504 on top
+  of the already-streaming 200 response. Scope the timeout to the snapshot JSON
+  API only; leave SSE and static assets unwrapped. Verified: a 35s session with
+  an open SSE connection now logs nothing.
 - **Dashboard was completely non-interactive.** The `.modal-backdrop` /
   `.palette-backdrop` rule set `display:grid`, which outranks the UA
   `[hidden]{display:none}` rule by specificity — so even when `hidden`, both
