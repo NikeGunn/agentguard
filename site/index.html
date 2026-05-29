@@ -28,6 +28,7 @@
     </a>
     <nav>
       <a href="#how">How it works</a>
+      <a href="#ai-setup">Agent setup</a>
       <a href="#setup">Setup</a>
       <a href="#features">Features</a>
       <a href="#agents">Agents</a>
@@ -289,9 +290,49 @@ session s1: 6 blocks/30s
   </div>
 </section>
 
+<section id="ai-setup" class="ai-setup">
+  <div class="section-inner">
+    <h2><span class="kicker">The easy way</span> Let your AI agent set it up</h2>
+    <p class="lead">
+      You already talk to an AI coding agent all day — and setting up AgentGuard is
+      exactly the kind of thing it's good at: run a command, check a config, start a
+      dashboard. So don't do it by hand. <strong>Pick your agent, copy the prompt,
+      paste it into your agent's chat.</strong> It does the rest, guided by the
+      AgentGuard Skill we ship.
+    </p>
+
+    <div class="promptgen" id="promptGen">
+      <div class="pg-agents" role="tablist" aria-label="Choose your agent">
+        <button class="pg-agent active" data-agent="claude" role="tab">Claude Code</button>
+        <button class="pg-agent" data-agent="cursor" role="tab">Cursor</button>
+        <button class="pg-agent" data-agent="codex" role="tab">Codex CLI</button>
+        <button class="pg-agent" data-agent="gemini" role="tab">Gemini CLI</button>
+        <button class="pg-agent" data-agent="windsurf" role="tab">Windsurf</button>
+      </div>
+
+      <div class="pg-box">
+        <div class="pg-box-head">
+          <span class="pg-label">Paste this into <strong id="pgAgentName">Claude Code</strong></span>
+          <button class="pg-copy" id="pgCopyBtn" type="button">
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 3h11a1 1 0 0 1 1 1v14h-2V5H8V3Zm-3 4h11a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Zm1 2v12h10V9H6Z"/></svg>
+            <span>Copy prompt</span>
+          </button>
+        </div>
+        <pre class="pg-prompt" id="pgPrompt"></pre>
+      </div>
+
+      <p class="pg-note">
+        100% client-side — the prompt is assembled in your browser, nothing is sent
+        anywhere. The agent backs up your config before changing it, and
+        <code>agentguard uninstall</code> restores everything byte-for-byte.
+      </p>
+    </div>
+  </div>
+</section>
+
 <section id="setup" class="setup">
   <div class="section-inner">
-    <h2><span class="kicker">Step-by-step setup</span> From zero to protected in under 2 minutes</h2>
+    <h2><span class="kicker">Or do it yourself</span> From zero to protected in under 2 minutes</h2>
     <p class="lead">
       You'll install one binary, run one command, and every AI agent on
       your machine starts routing tool calls through AgentGuard. Pick
