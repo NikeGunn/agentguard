@@ -409,4 +409,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `Makefile` with `build`, `test`, `lint`, `bench`, `clean`, `install-tools`.
 - `.github/workflows/ci.yml`: lint + test + cross-build matrix
   (darwin/linux/windows × amd64/arm64).
-- `PR_DRAFT.md` summarising the milestone.
