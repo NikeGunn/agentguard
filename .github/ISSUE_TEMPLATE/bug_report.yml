@@ -1,0 +1,63 @@
+name: 🐛 Bug report
+description: Something doesn't work the way it should.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. The more concrete the
+        reproduction, the faster it gets fixed.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you get instead?
+      placeholder: After `agentguard init`, my Cursor config wasn't patched…
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: A numbered list someone else can follow exactly.
+      placeholder: |
+        1. Run `agentguard init`
+        2. Open Cursor
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `agentguard doctor`
+      description: This captures your environment and routing state. Redact anything sensitive.
+      render: shell
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: AgentGuard version
+      description: Output of `agentguard --version`.
+      placeholder: v1.2.2
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: agent
+    attributes:
+      label: Which agent(s)?
+      placeholder: Claude Code, Cursor, Codex CLI, Gemini CLI, Windsurf…
+    validations:
+      required: false

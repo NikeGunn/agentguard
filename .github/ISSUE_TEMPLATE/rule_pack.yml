@@ -1,0 +1,50 @@
+name: 🛡️ New rule pack / detection
+description: Propose a new secret format, dangerous tool pattern, or injection signature to catch.
+title: "pack: "
+labels: ["detection-engine", "good first issue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Rule packs are the easiest, highest-value way to contribute — they're
+        just YAML. This issue helps scope one. See `internal/policy/builtin/`
+        for the format.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of detection?
+      options:
+        - Secret format (API key, token, credential)
+        - Dangerous tool / shell pattern
+        - Prompt-injection signature
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: pattern
+    attributes:
+      label: What should it match?
+      description: Describe the pattern. A sample (redacted/fake) string and a regex if you have one.
+      placeholder: |
+        Vendor: Acme Cloud
+        Format: acme_live_<32 hex chars>
+        Example (fake): acme_live_0123456789abcdef0123456789abcdef
+    validations:
+      required: true
+  - type: dropdown
+    id: action
+    attributes:
+      label: Suggested action
+      options:
+        - redact (replace on the wire)
+        - block (refuse the call)
+        - flag (record but allow)
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Reference
+      description: Link to the vendor's key-format docs, if public.
+    validations:
+      required: false

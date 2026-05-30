@@ -50,7 +50,7 @@ file in the repo for the maintainers' reference.
 > enforced in CI). Releases are cosign-signed via GitHub OIDC.
 >
 > MIT licensed. Repo:
-> https://github.com/agentguard/agentguard
+> https://github.com/nikegunn/agentguard
 >
 > Happy to answer questions about the design tradeoffs (why heuristic
 > instead of ONNX, why SQLite instead of DuckDB, why no daemon, etc.).
@@ -71,7 +71,7 @@ file in the repo for the maintainers' reference.
 3. 5-stage pipeline. Per-session circuit breaker. Live dashboard with
    SSE. Replay historic traffic against new rule packs. <5ms p99.
 
-4. Repo + docs: https://github.com/agentguard/agentguard
+4. Repo + docs: https://github.com/nikegunn/agentguard
 
 ## Three launch blog posts
 

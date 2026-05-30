@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Security vulnerability
+    url: https://github.com/nikegunn/agentguard/security/advisories/new
+    about: Found a way past AgentGuard or a vulnerability in it? Please report it privately — see SECURITY.md. Do not open a public issue.
+  - name: 💬 Questions & ideas
+    url: https://github.com/nikegunn/agentguard/discussions
+    about: Have a question, an idea, or want to show what you built? Start a Discussion.
