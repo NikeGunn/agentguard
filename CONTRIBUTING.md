@@ -6,7 +6,7 @@ PR matters.
 ## Dev setup
 
 ```bash
-git clone https://github.com/<you>/agentguard
+git clone https://github.com/nikegunn/agentguard
 cd agentguard
 make install-tools
 make build
