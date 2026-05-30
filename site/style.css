@@ -42,7 +42,11 @@ body {
   font-family: var(--sans);
   font-size: 16px;
   line-height: 1.6;
+  font-feature-settings: "cv11", "ss01", "ss03";
+  letter-spacing: -0.011em;
+  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
@@ -158,10 +162,11 @@ code { font-family: var(--mono); font-size: 0.92em; color: #c4b5fd; }
   margin-bottom: 28px;
 }
 .hero h1 {
-  font-size: clamp(40px, 7.5vw, 88px);
-  line-height: 1.02;
-  letter-spacing: -0.035em;
+  font-size: clamp(42px, 7vw, 84px);
+  line-height: 1.0;
+  letter-spacing: -0.045em;
   font-weight: 800;
+  text-wrap: balance;
 }
 .gradient {
   background: var(--grad);
@@ -171,9 +176,11 @@ code { font-family: var(--mono); font-size: 0.92em; color: #c4b5fd; }
 }
 .hero-sub {
   margin: 26px auto 0;
-  max-width: 640px;
-  font-size: clamp(16px, 2vw, 20px);
+  max-width: 600px;
+  font-size: clamp(17px, 1.7vw, 20px);
+  line-height: 1.55;
   color: var(--text-2);
+  text-wrap: pretty;
 }
 .hero-ctas {
   display: flex; gap: 14px; justify-content: center;
@@ -250,32 +257,48 @@ code { font-family: var(--mono); font-size: 0.92em; color: #c4b5fd; }
 .kicker {
   display: inline-block;
   font-family: var(--mono);
-  font-size: 12px; letter-spacing: .2em; text-transform: uppercase;
+  font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
   color: var(--violet);
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 .kicker.center, h2.center, .lead.center, .sub.center { text-align: center; }
 .kicker.center { display: block; }
 
 h2 {
-  font-size: clamp(28px, 4.4vw, 48px);
-  letter-spacing: -.03em;
-  line-height: 1.08;
+  font-size: clamp(30px, 4.2vw, 46px);
+  letter-spacing: -.035em;
+  line-height: 1.06;
   font-weight: 800;
+  text-wrap: balance;
 }
 .lead {
-  margin-top: 18px;
-  font-size: 18px; color: var(--text-2);
-  max-width: 680px;
+  margin-top: 20px;
+  font-size: clamp(16px, 1.6vw, 19px);
+  line-height: 1.6;
+  color: var(--text-2);
+  max-width: 620px;
+  text-wrap: pretty;
 }
 .lead.center { margin-left: auto; margin-right: auto; }
-.sec-head { margin-bottom: 56px; }
-.sec-head.reveal h2 { max-width: 760px; }
+
+/* ---- universal centered section header ---------------------------------- */
+/* every section intro stacks vertically, dead-centered. */
+.sec-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin: 0 auto 60px;
+  max-width: 760px;
+}
+.sec-head .kicker { display: block; }
+.sec-head h2 { max-width: 18ch; }
+.sec-head .lead { margin-left: auto; margin-right: auto; }
+.sec-head .side-note { margin-top: 16px; }
 
 /* =========================== LIVE TERMINAL =========================== */
 .terminal-section { padding: 120px 0; position: relative; z-index: 1; }
-.term-head { margin-bottom: 40px; max-width: 720px; }
-.side-note { margin-top: 14px; color: var(--text-3); font-size: 14px; }
+.side-note { color: var(--text-3); font-size: 14px; }
 
 .terminal {
   border: 1px solid var(--border);
@@ -367,8 +390,8 @@ h2 {
   color: #c4b5fd;
   margin-bottom: 18px;
 }
-.bento-card h3 { font-size: 19px; letter-spacing: -.02em; margin-bottom: 8px; }
-.bento-card p { color: var(--text-2); font-size: 15px; }
+.bento-card h3 { font-size: 19px; font-weight: 700; letter-spacing: -.025em; margin-bottom: 9px; }
+.bento-card p { color: var(--text-2); font-size: 14.5px; line-height: 1.6; text-wrap: pretty; }
 
 @media (max-width: 860px) {
   .bento { grid-template-columns: 1fr; }
