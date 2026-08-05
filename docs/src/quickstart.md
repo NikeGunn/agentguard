@@ -12,7 +12,7 @@ agentguard uninstall    # roll everything back, byte-identical
 
 1. Creates `~/.agentguard/{bin,data,logs,packs,config}` with mode 0700.
 2. Runs the SQLite migrations.
-3. Detects every supported agent (Claude Code, Cursor, Codex CLI,
+3. Detects every supported agent (Claude Code, Cline, Cursor, Codex CLI,
    Gemini CLI, Windsurf).
 4. Backs up each agent's config to `<path>.agentguard.bak` byte-for-byte.
 5. Rewrites every stdio MCP entry to invoke `agentguard wrap`

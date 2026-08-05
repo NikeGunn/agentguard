@@ -30,7 +30,7 @@ Do these in order. Every step is idempotent and safe to re-run.
 1. **Health check.** `agentguard --version` then `agentguard doctor`. If `doctor`
    shows ✗ lines, fix or explain them before continuing (see Troubleshooting).
 2. **Wire in this agent.** `agentguard init --non-interactive`. This detects the
-   installed agents (Claude Code, Cursor, Codex, Gemini CLI, Windsurf), **backs up
+   installed agents (Claude Code, Cline, Cursor, Codex, Gemini CLI, Windsurf), **backs up
    each config** to `<path>.agentguard.bak`, and rewrites every stdio MCP entry to
    route through `agentguard wrap`. Never hand-edit a config yourself — `init` does
    it safely and reversibly.
