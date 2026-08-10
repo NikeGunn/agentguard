@@ -21,6 +21,7 @@ type Kind string
 
 const (
 	KindClaudeCode Kind = "claude-code"
+	KindCline      Kind = "cline"
 	KindCursor     Kind = "cursor"
 	KindCodex      Kind = "codex"
 	KindGeminiCLI  Kind = "gemini-cli"
@@ -76,6 +77,7 @@ var ErrNotInstalled = errors.New("agent not installed")
 func AllDetectors() []Detector {
 	return []Detector{
 		ClaudeCodeDetector{},
+		ClineDetector{},
 		CursorDetector{},
 		CodexDetector{},
 		GeminiCLIDetector{},

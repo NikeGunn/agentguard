@@ -7,8 +7,8 @@
 [![cosign-signed](https://img.shields.io/badge/cosign-signed-success)](https://docs.sigstore.dev/cosign/overview/)
 [![landing-page](https://img.shields.io/badge/site-nikegunn.github.io%2Fagentguard-4ad6ff)](https://nikegunn.github.io/agentguard/)
 
-> Zero-trust security sidecar for AI agents — Claude Code, Cursor, Codex,
-> Gemini CLI, Windsurf, or anything that speaks MCP.
+> Zero-trust security sidecar for AI agents — Claude Code, Cline, Cursor,
+> Codex, Gemini CLI, Windsurf, or anything that speaks MCP.
 
 AgentGuard sits transparently between your AI agent and the tools it
 calls. Every JSON-RPC frame goes through a five-stage inspection
@@ -68,8 +68,8 @@ intent. AgentGuard inspects the wire.
   your machine.
 - **<5 ms p99** overhead on the cheap inspection path (measured, enforced
   by CI gate).
-- **Auto-detect + auto-wire** for Claude Code, Cursor, Codex CLI, Gemini
-  CLI, Windsurf. Backups are byte-identical; uninstall restores them
+- **Auto-detect + auto-wire** for Claude Code, Cline, Cursor, Codex CLI,
+  Gemini CLI, Windsurf. Backups are byte-identical; uninstall restores them
   exactly.
 - **Live TUI** (`agentguard tail`) and a polished web dashboard with SSE
   live updates and dark + light themes.

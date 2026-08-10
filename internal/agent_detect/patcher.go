@@ -145,23 +145,28 @@ func patchJSON(original []byte, d *Detection, opt PatchOptions) ([]byte, int, in
 	}
 	rewritten, unchanged := 0, 0
 	for name, entry := range parsed.Servers {
+		command, args, url, _ := entry.values()
 		if opt.SkipServers[name] {
 			unchanged++
 			continue
 		}
 		// HTTP entries — leave alone until M4.
-		if entry.URL != "" && entry.Command == "" {
+		if url != "" && command == "" {
+			unchanged++
+			continue
+		}
+		if command == "" {
 			unchanged++
 			continue
 		}
 		// Already wrapped — idempotent skip.
-		if AlreadyWrapped(MCPServerEntry{Command: entry.Command}, opt.AgentguardBinary) {
+		if AlreadyWrapped(MCPServerEntry{Command: command}, opt.AgentguardBinary) {
 			unchanged++
 			continue
 		}
-		entry.Args = wrapArgs(name, entry.Command, entry.Args)
-		entry.Command = opt.AgentguardBinary
-		// Preserve "type" field if it was there.
+		if err := entry.setInvocation(opt.AgentguardBinary, wrapArgs(name, command, args)); err != nil {
+			return nil, 0, 0, fmt.Errorf("rewrite %s: %w", name, err)
+		}
 		parsed.Servers[name] = entry
 		rewritten++
 	}

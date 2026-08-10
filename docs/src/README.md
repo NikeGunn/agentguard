@@ -1,6 +1,6 @@
 # AgentGuard
 
-> Zero-trust security sidecar for AI agents — Claude Code, Cursor, Codex, Gemini CLI, Windsurf.
+> Zero-trust security sidecar for AI agents — Claude Code, Cline, Cursor, Codex, Gemini CLI, Windsurf.
 
 AgentGuard sits transparently between your AI agent and the MCP/A2A tools it
 calls. Every request and response goes through a five-stage inspection
