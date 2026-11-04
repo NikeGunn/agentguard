@@ -41,7 +41,7 @@ func newInitCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Detect installed AI agents and route their MCP traffic through AgentGuard",
-		Long: `Find Claude Code, Cursor, Codex, Gemini CLI, and Windsurf on this
+		Long: `Find Claude Code, Cline, Cursor, Codex, Gemini CLI, and Windsurf on this
 machine, back up their MCP configs, and rewrite each entry to invoke
 'agentguard wrap'. Every original config is preserved at
 <path>.agentguard.bak so 'agentguard uninstall' restores byte-identically.`,
@@ -84,7 +84,7 @@ machine, back up their MCP configs, and rewrite each entry to invoke
 				fmt.Fprintf(out, "  ⚠ %v\n", e)
 			}
 			if len(detections) == 0 {
-				fmt.Fprintln(out, "  · No supported agents detected. Install Claude Code, Cursor, Codex, Gemini CLI, or Windsurf and re-run.")
+				fmt.Fprintln(out, "  · No supported agents detected. Install Claude Code, Cline, Cursor, Codex, Gemini CLI, or Windsurf and re-run.")
 				return nil
 			}
 

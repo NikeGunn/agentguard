@@ -143,6 +143,104 @@ func TestPatchSkipsHTTPEntries(t *testing.T) {
 	require.Equal(t, 1, res.UnchangedCount)
 }
 
+func TestPatchJSONKeepsFlatTransportFields(t *testing.T) {
+	home := t.TempDir()
+	writeFile(t, home, ".claude.json", `{
+  "mcpServers": {
+    "string": {
+      "transport": "stdio",
+      "command": "node",
+      "args": ["string.js"]
+    },
+    "object": {
+      "transport": {"type": "stdio"},
+      "command": "node",
+      "args": ["object.js"]
+    }
+  }
+}`)
+	d, err := ClaudeCodeDetector{}.Detect(home)
+	require.NoError(t, err)
+	require.Len(t, d.Servers, 2)
+	res, err := Apply(d, PatchOptions{AgentguardBinary: "/opt/agentguard"})
+	require.NoError(t, err)
+	require.Equal(t, 2, res.RewrittenCount)
+
+	d2, err := ClaudeCodeDetector{}.Detect(home)
+	require.NoError(t, err)
+	for _, server := range d2.Servers {
+		require.Equal(t, "/opt/agentguard", server.Command)
+	}
+
+	data, err := os.ReadFile(d.ConfigPath)
+	require.NoError(t, err)
+	var raw map[string]json.RawMessage
+	require.NoError(t, json.Unmarshal(data, &raw))
+	var servers map[string]map[string]json.RawMessage
+	require.NoError(t, json.Unmarshal(raw["mcpServers"], &servers))
+	require.JSONEq(t, `"stdio"`, string(servers["string"]["transport"]))
+	require.JSONEq(t, `{"type":"stdio"}`, string(servers["object"]["transport"]))
+}
+
+func TestPatchJSONRewritesClineNestedTransport(t *testing.T) {
+	home := t.TempDir()
+	writeFile(t, home, ".cline/data/settings/cline_mcp_settings.json", `{
+  "mcpServers": {
+    "filesystem": {
+      "transport": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+        "env": {"HOME": "/tmp"}
+      },
+      "disabled": false,
+      "metadata": {"source": "user"}
+    },
+    "remote": {
+      "transport": {"type": "streamableHttp", "url": "https://mcp.example.com"}
+    }
+  }
+}`)
+	d, err := ClineDetector{}.Detect(home)
+	require.NoError(t, err)
+	res, err := Apply(d, PatchOptions{AgentguardBinary: "/opt/agentguard"})
+	require.NoError(t, err)
+	require.Equal(t, 1, res.RewrittenCount)
+	require.Equal(t, 1, res.UnchangedCount)
+
+	d2, err := ClineDetector{}.Detect(home)
+	require.NoError(t, err)
+	require.Len(t, d2.Servers, 2)
+	for _, server := range d2.Servers {
+		if server.Name == "filesystem" {
+			require.Equal(t, "/opt/agentguard", server.Command)
+			require.Equal(t, []string{
+				"wrap", "--upstream-name", "filesystem", "--", "npx", "-y",
+				"@modelcontextprotocol/server-filesystem",
+			}, server.Args)
+		}
+	}
+	res2, err := Apply(d2, PatchOptions{AgentguardBinary: "/opt/agentguard"})
+	require.NoError(t, err)
+	require.Equal(t, 0, res2.RewrittenCount)
+	require.Equal(t, 2, res2.UnchangedCount)
+
+	data, err := os.ReadFile(d.ConfigPath)
+	require.NoError(t, err)
+	var raw map[string]json.RawMessage
+	require.NoError(t, json.Unmarshal(data, &raw))
+	var servers map[string]map[string]json.RawMessage
+	require.NoError(t, json.Unmarshal(raw["mcpServers"], &servers))
+	require.Contains(t, servers["filesystem"], "disabled")
+	require.Contains(t, servers["filesystem"], "metadata")
+	require.JSONEq(t, `false`, string(servers["filesystem"]["disabled"]))
+	require.JSONEq(t, `{"source":"user"}`, string(servers["filesystem"]["metadata"]))
+	var transport map[string]json.RawMessage
+	require.NoError(t, json.Unmarshal(servers["filesystem"]["transport"], &transport))
+	require.JSONEq(t, `"stdio"`, string(transport["type"]))
+	require.JSONEq(t, `{"HOME":"/tmp"}`, string(transport["env"]))
+}
+
 func TestPatchSkipServers(t *testing.T) {
 	home := t.TempDir()
 	writeFile(t, home, ".claude.json", `{

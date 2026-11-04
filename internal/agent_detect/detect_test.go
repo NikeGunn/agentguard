@@ -48,6 +48,37 @@ func TestCursorDetects(t *testing.T) {
 	require.Equal(t, "fs", d.Servers[0].Name)
 }
 
+func TestClineDetects(t *testing.T) {
+	home := t.TempDir()
+	writeFile(t, home, ".cline/data/settings/cline_mcp_settings.json", `{
+  "mcpServers": {
+    "filesystem": {
+      "transport": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+        "env": {"HOME": "/tmp"}
+      },
+      "disabled": false
+    }
+  }
+}`)
+	d, err := ClineDetector{}.Detect(home)
+	require.NoError(t, err)
+	require.Equal(t, KindCline, d.Kind)
+	require.Equal(t, FormatJSON, d.Format)
+	require.Len(t, d.Servers, 1)
+	require.Equal(t, "filesystem", d.Servers[0].Name)
+	require.Equal(t, "npx", d.Servers[0].Command)
+	require.Equal(t, []string{"-y", "@modelcontextprotocol/server-filesystem"}, d.Servers[0].Args)
+	require.Equal(t, map[string]string{"HOME": "/tmp"}, d.Servers[0].Env)
+}
+
+func TestClineNotInstalled(t *testing.T) {
+	_, err := ClineDetector{}.Detect(t.TempDir())
+	require.ErrorIs(t, err, ErrNotInstalled)
+}
+
 func TestCodexDetectsTOML(t *testing.T) {
 	home := t.TempDir()
 	writeFile(t, home, ".codex/config.toml", `
